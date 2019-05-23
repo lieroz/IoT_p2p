@@ -70,5 +70,6 @@ void RHHardwareSPI::begin()
 
 void RHHardwareSPI::end() 
 {
+    SPI.end();
 }
 
