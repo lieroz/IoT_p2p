@@ -90,9 +90,9 @@ int main (int argc, const char* argv[] )
   // Pulse a reset on module
   pinMode(RF_RST_PIN, OUTPUT);
   digitalWrite(RF_RST_PIN, LOW );
-  bcm2835_delay(150);
+  bcm2835_delay((unsigned int)150);
   digitalWrite(RF_RST_PIN, HIGH );
-  bcm2835_delay(100);
+  bcm2835_delay((unsigned int)100);
 #endif
 
 #ifdef RF_LED_PIN
@@ -203,7 +203,7 @@ int main (int argc, const char* argv[] )
       
       // Let OS doing other tasks
       // Since we do nothing until each 5 sec
-      bcm2835_delay(100);
+      bcm2835_delay((unsigned int)100);
     }
   }
 
