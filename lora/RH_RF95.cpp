@@ -3,7 +3,7 @@
 // Copyright (C) 2011 Mike McCauley
 // $Id: RH_RF95.cpp,v 1.12 2017/01/12 23:58:00 mikem Exp $
 
-#include <RH_RF95.h>
+#include "RH_RF95.h"
 
 // Interrupt vectors for the 3 Arduino interrupt pins
 // Each interrupt can be handled by a different instance of RH_RF95, allowing you to have
@@ -64,7 +64,7 @@ bool RH_RF95::init()
 
     // Set sleep mode, so we can also set LORA mode:
     spiWrite(RH_RF95_REG_01_OP_MODE, RH_RF95_MODE_SLEEP | RH_RF95_LONG_RANGE_MODE);
-    delay(10); // Wait for sleep mode to take over from say, CAD
+    //delay(10); // Wait for sleep mode to take over from say, CAD
     // Check we are in sleep mode, with LORA set
     if (spiRead(RH_RF95_REG_01_OP_MODE) != (RH_RF95_MODE_SLEEP | RH_RF95_LONG_RANGE_MODE))
     {

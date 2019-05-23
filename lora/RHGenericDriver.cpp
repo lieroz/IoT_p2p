@@ -3,7 +3,7 @@
 // Copyright (C) 2014 Mike McCauley
 // $Id: RHGenericDriver.cpp,v 1.20 2017/01/12 23:58:00 mikem Exp $
 
-#include <RHGenericDriver.h>
+#include "RHGenericDriver.h"
 
 RHGenericDriver::RHGenericDriver()
     :
@@ -84,7 +84,7 @@ bool RHGenericDriver::waitCAD()
     {
          if (millis() - t > _cad_timeout) 
 	     return false;
-         delay(random(1, 10) * 100); // Should these values be configurable? Macros?
+         //delay(random(1, 10) * 100); // Should these values be configurable? Macros?
     }
 
     return true;

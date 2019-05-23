@@ -56,8 +56,7 @@ volatile sig_atomic_t force_exit = false;
 
 void sig_handler(int sig)
 {
-  printf("\n%s Break received, exiting!\n", __BASEFILE__);
-  force_exit=true;
+  force_exit = true;
 }
 
 //Main Function
@@ -67,10 +66,8 @@ int main (int argc, const char* argv[] )
   static unsigned long led_blink = 0;
   
   signal(SIGINT, sig_handler);
-  printf( "%s\n", __BASEFILE__);
 
   if (!bcm2835_init()) {
-    fprintf( stderr, "%s bcm2835_init() Failed\n\n", __BASEFILE__ );
     return 1;
   }
   
@@ -213,7 +210,6 @@ int main (int argc, const char* argv[] )
 #ifdef RF_LED_PIN
   digitalWrite(RF_LED_PIN, LOW );
 #endif
-  printf( "\n%s Ending\n", __BASEFILE__ );
   bcm2835_close();
   return 0;
 }

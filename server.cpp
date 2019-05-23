@@ -55,7 +55,6 @@ volatile sig_atomic_t force_exit = false;
 
 void sig_handler(int sig)
 {
-  printf("\n%s Break received, exiting!\n", __BASEFILE__);
   force_exit=true;
 }
 
@@ -65,10 +64,8 @@ int main (int argc, const char* argv[] )
   unsigned long led_blink = 0;
   
   signal(SIGINT, sig_handler);
-  printf( "%s\n", __BASEFILE__);
 
   if (!bcm2835_init()) {
-    fprintf( stderr, "%s bcm2835_init() Failed\n\n", __BASEFILE__ );
     return 1;
   }
   
@@ -93,9 +90,9 @@ int main (int argc, const char* argv[] )
   // Pulse a reset on module
   pinMode(RF_RST_PIN, OUTPUT);
   digitalWrite(RF_RST_PIN, LOW );
-  bcm2835_delay(150);
+  bcm2835_delay((unsigned int)150);
   digitalWrite(RF_RST_PIN, HIGH );
-  bcm2835_delay(100);
+  bcm2835_delay((unsigned int)100);
 #endif
 
 #ifdef RF_LED_PIN
@@ -181,14 +178,13 @@ int main (int argc, const char* argv[] )
       // Let OS doing other tasks
       // For timed critical appliation you can reduce or delete
       // this delay, but this will charge CPU usage, take care and monitor
-      bcm2835_delay(5);
+      bcm2835_delay((unsigned int)5);
     }
   }
 
 #ifdef RF_LED_PIN
   digitalWrite(RF_LED_PIN, LOW );
 #endif
-  printf( "\n%s Ending\n", __BASEFILE__ );
   bcm2835_close();
   return 0;
 }

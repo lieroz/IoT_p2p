@@ -6,7 +6,7 @@
 // Contributed by Mike Poublon and used with permission
 
 
-#include <RadioHead.h>
+#include "RadioHead.h"
 
 #if (RH_PLATFORM == RH_PLATFORM_RASPI)
 #include <sys/time.h>
