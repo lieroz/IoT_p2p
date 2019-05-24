@@ -1,8 +1,7 @@
 #include "RHGenericDriver.h"
 
 RHGenericDriver::RHGenericDriver()
-    :
-    _mode(RHModeInitialising),
+    : _mode(RHModeInitialising),
     _thisAddress(RH_BROADCAST_ADDRESS),
     _txHeaderTo(RH_BROADCAST_ADDRESS),
     _txHeaderFrom(RH_BROADCAST_ADDRESS),
@@ -24,7 +23,7 @@ void RHGenericDriver::waitAvailable()
 {
     while (!available())
     {
-	    YIELD;
+        // do dome useful work here, yield() analog;
     }
 }
 
@@ -37,7 +36,8 @@ bool RHGenericDriver::waitAvailableTimeout(uint16_t timeout)
         {
                return true;
         }
-        YIELD;
+
+        // do dome useful work here, yield() analog;
     }
     return false;
 }
@@ -46,7 +46,7 @@ bool RHGenericDriver::waitPacketSent()
 {
     while (_mode == RHModeTx)
     {
-	    YIELD;
+        // do dome useful work here, yield() analog;
     }
     return true;
 }
@@ -60,7 +60,8 @@ bool RHGenericDriver::waitPacketSent(uint16_t timeout)
         {
             return true;
         }
-	    YIELD;
+
+        // do dome useful work here, yield() analog;
     }
     return false;
 }
@@ -75,7 +76,7 @@ bool RHGenericDriver::waitCAD()
     unsigned long t = millis();
     while (isChannelActive())
     {
-         if (millis() - t > _cad_timeout) 
+         if (millis() - t > _cad_timeout)
          {
 	        return false;
          }
@@ -160,8 +161,8 @@ bool  RHGenericDriver::sleep()
     return false;
 }
 
-// Diagnostic help
-void RHGenericDriver::printBuffer(const char* prompt, const uint8_t* buf, uint8_t len)
+void RHGenericDriver::printBuffer(const char* prompt,
+        const uint8_t* buf, uint8_t len)
 {
     uint8_t i;
 

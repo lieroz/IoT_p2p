@@ -208,54 +208,45 @@ class RH_RF95 : public RHSPIDriver
 public:
     typedef struct
     {
-	uint8_t    reg_1d;   ///< Value for register RH_RF95_REG_1D_MODEM_CONFIG1
-	uint8_t    reg_1e;   ///< Value for register RH_RF95_REG_1E_MODEM_CONFIG2
-	uint8_t    reg_26;   ///< Value for register RH_RF95_REG_26_MODEM_CONFIG3
+        uint8_t reg_1d;
+        uint8_t reg_1e;
+        uint8_t reg_26;
     } ModemConfig;
-  
+
     typedef enum
     {
-	Bw125Cr45Sf128 = 0,	   ///< Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on. Default medium range
-	Bw500Cr45Sf128,	           ///< Bw = 500 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on. Fast+short range
-	Bw31_25Cr48Sf512,	   ///< Bw = 31.25 kHz, Cr = 4/8, Sf = 512chips/symbol, CRC on. Slow+long range
-	Bw125Cr48Sf4096,           ///< Bw = 125 kHz, Cr = 4/8, Sf = 4096chips/symbol, CRC on. Slow+long range
+        Bw125Cr45Sf128 = 0,
+        Bw500Cr45Sf128,
+        Bw31_25Cr48Sf512,
+        Bw125Cr48Sf4096,
     } ModemConfigChoice;
 
-    RH_RF95(uint8_t slaveSelectPin = SS, uint8_t interruptPin = 2, RHGenericSPI& spi = hardware_spi);
-    virtual bool    init();
+    RH_RF95(uint8_t slaveSelectPin = SS, uint8_t interruptPin = 2);
 
+    virtual bool init();
     bool printRegisters();
 
-    void           setModemRegisters(const ModemConfig* config);
+    void setModemRegisters(const ModemConfig* config);
+    bool setModemConfig(ModemConfigChoice index);
 
-    bool        setModemConfig(ModemConfigChoice index);
+    bool getModemConfig(ModemConfigChoice index, ModemConfig* config);
 
-    bool        getModemConfig(ModemConfigChoice index, ModemConfig* config);
+    virtual bool available();
+    virtual bool recv(uint8_t* buf, uint8_t* len);
+    virtual bool send(const uint8_t* data, uint8_t len);
+    virtual bool waitPacketSent();
 
-    virtual bool    available();
-
-    virtual bool    recv(uint8_t* buf, uint8_t* len);
-    virtual bool    send(const uint8_t* data, uint8_t len);
-
-    virtual bool   waitPacketSent();
-    void           setPreambleLength(uint16_t bytes);
-
+    void setPreambleLength(uint16_t bytes);
     virtual uint8_t maxMessageLength();
 
-    bool        setFrequency(float centre);
+    bool setFrequency(float centre);
+    void setModeIdle();
+    void setModeRx();
+    void setModeTx();
+    void setTxPower(int8_t power, bool useRFO = false);
 
-    void           setModeIdle();
-
-    void           setModeRx();
-
-    void           setModeTx();
-
-    void           setTxPower(int8_t power, bool useRFO = false);
-
-    virtual bool    sleep();
-
-    virtual bool    isChannelActive();
-
+    virtual bool sleep();
+    virtual bool isChannelActive();
     void enableTCXO();
 
 protected:
@@ -263,10 +254,9 @@ protected:
     void clearRxBuf();
 
 private:
-
-    volatile uint8_t    _bufLen;
-    uint8_t             _buf[RH_RF95_MAX_PAYLOAD_LEN];
-    volatile bool       _rxBufValid;
+    volatile uint8_t _bufLen;
+    uint8_t _buf[RH_RF95_MAX_PAYLOAD_LEN];
+    volatile bool _rxBufValid;
 };
 
 #endif
