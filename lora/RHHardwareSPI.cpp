@@ -6,7 +6,7 @@ RHHardwareSPI::RHHardwareSPI(Frequency frequency,
 {
 }
 
-uint8_t setAndGetDataMode()
+uint8_t RHHardwareSPI::setAndGetDataMode()
 {
     uint8_t dataMode = 0;
 
@@ -31,7 +31,7 @@ uint8_t setAndGetDataMode()
     return dataMode;
 }
 
-uint8_t setAndGetBitOrder()
+uint8_t RHHardwareSPI::setAndGetBitOrder()
 {
     uint8_t bitOrder = 0;
 
@@ -47,8 +47,10 @@ uint8_t setAndGetBitOrder()
     return bitOrder;
 }
 
-uint32_t setAndGetDivider()
+uint32_t RHHardwareSPI::setAndGetDivider()
 {
+    uint32_t divider = BCM2835_SPI_CLOCK_DIVIDER_256;
+
     switch (_frequency)
     {
     case Frequency1MHz:
