@@ -1,5 +1,4 @@
-#ifndef RHSPIDriver_h
-#define RHSPIDriver_h
+#pragma once
 
 #include "RHGenericDriver.h"
 #include "RHHardwareSPI.h"
@@ -28,6 +27,4 @@ protected:
     RHHardwareSPI _spi;
     uint8_t _slaveSelectPin;
 };
-
-#endif
 

@@ -1,5 +1,4 @@
-#ifndef RHHardwareSPI_h
-#define RHHardwareSPI_h
+#pragma once
 
 #include "RHGenericSPI.h"
 
@@ -20,4 +19,3 @@ private:
     uint32_t setAndGetDivider();
 };
 
-#endif

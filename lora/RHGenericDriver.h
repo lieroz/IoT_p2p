@@ -1,13 +1,12 @@
-#ifndef RHGenericDriver_h
-#define RHGenericDriver_h
+#pragma once
 
 #include "RadioHead.h"
 
-#define RH_FLAGS_RESERVED                 0xf0
-#define RH_FLAGS_APPLICATION_SPECIFIC     0x0f
-#define RH_FLAGS_NONE                     0
+#define RH_FLAGS_RESERVED 0xf0
+#define RH_FLAGS_APPLICATION_SPECIFIC 0x0f
+#define RH_FLAGS_NONE 0
 
-#define RH_CAD_DEFAULT_TIMEOUT            10000
+#define RH_CAD_DEFAULT_TIMEOUT 10000
 
 class RHGenericDriver
 {
@@ -88,6 +87,4 @@ protected:
     volatile bool _cad;
     unsigned int _cad_timeout;
 };
-
-#endif
 

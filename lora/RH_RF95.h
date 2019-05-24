@@ -1,14 +1,10 @@
-#ifndef RH_RF95_h
-#define RH_RF95_h
+#pragma once
 
 #include "RHSPIDriver.h"
 
 #define RH_RF95_NUM_INTERRUPTS 3
-
 #define RH_RF95_FIFO_SIZE 255
-
 #define RH_RF95_MAX_PAYLOAD_LEN RH_RF95_FIFO_SIZE
-
 #define RH_RF95_HEADER_LEN 4
 
 #ifndef RH_RF95_MAX_MESSAGE_LEN
@@ -16,9 +12,7 @@
 #endif
 
 #define RH_RF95_FXOSC 32000000.0
-
 #define RH_RF95_FSTEP  (RH_RF95_FXOSC / 524288)
-
 
 #define RH_RF95_REG_00_FIFO                                0x00
 #define RH_RF95_REG_01_OP_MODE                             0x01
@@ -119,7 +113,7 @@
 #define RH_RF95_LNA_GAIN                              0xe0
 #define RH_RF95_LNA_GAIN_G1                           0x20
 #define RH_RF95_LNA_GAIN_G2                           0x40
-#define RH_RF95_LNA_GAIN_G3                           0x60                
+#define RH_RF95_LNA_GAIN_G3                           0x60
 #define RH_RF95_LNA_GAIN_G4                           0x80
 #define RH_RF95_LNA_GAIN_G5                           0xa0
 #define RH_RF95_LNA_GAIN_G6                           0xc0
@@ -258,6 +252,4 @@ private:
     uint8_t _buf[RH_RF95_MAX_PAYLOAD_LEN];
     volatile bool _rxBufValid;
 };
-
-#endif
 
