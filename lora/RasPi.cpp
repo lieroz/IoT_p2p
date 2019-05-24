@@ -185,3 +185,32 @@ size_t SerialSimulator::println(unsigned char ch, int base)
     printf("\n");
 }
 
+void printbuffer(uint8_t buff[], int len)
+{    
+    bool ascii = true;
+
+    for (int i = 0; i < len; i++)
+    {
+        if (buff[i] < 32 || buff[i] > 127)
+        {
+            if (buff[i] != 0 || i != len - 1)
+            {
+                ascii = false; 
+                break;
+            }
+        }
+    }  
+
+    for (int i = 0; i < len; i++)
+    {
+        if (ascii)
+        {
+            printf("%c", buff[i]);
+        }
+        else
+        {
+            printf(" %02X", buff[i]);
+        }
+    }  
+}    
+
