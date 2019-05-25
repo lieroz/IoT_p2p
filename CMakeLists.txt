@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.7)
 project(IoT_p2p)
 
+include_directories(lora)
 add_subdirectory(lora)
 
 add_executable(server server.cpp)

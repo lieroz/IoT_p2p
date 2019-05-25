@@ -2,7 +2,9 @@
 
 RHHardwareSPI::RHHardwareSPI(Frequency frequency,
         BitOrder bitOrder, DataMode dataMode)
-    : RHGenericSPI(frequency, bitOrder, dataMode)
+    : _frequency(frequency),
+    _bitOrder(bitOrder),
+    _dataMode(dataMode)
 {
 }
 
@@ -91,5 +93,20 @@ void RHHardwareSPI::begin()
 void RHHardwareSPI::end()
 {
     SPI.end();
+}
+
+void RHHardwareSPI::setBitOrder(BitOrder bitOrder)
+{
+    _bitOrder = bitOrder;
+}
+
+void RHHardwareSPI::setDataMode(DataMode dataMode)
+{
+    _dataMode = dataMode;
+}
+
+void RHHardwareSPI::setFrequency(Frequency frequency)
+{
+    _frequency = frequency;
 }
 
