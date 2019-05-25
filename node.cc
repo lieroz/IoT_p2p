@@ -28,9 +28,12 @@ int main(int argc, const char *argv[])
         return 1;
     }
 
-    if (!rf95.init()) {
+    if (!rf95.init())
+    {
         std::cerr << "RF95 module init failed, Please verify wiring/module" << std::endl;
-    } else {
+    }
+    else
+    {
         rf95.setTxPower(14, false);
         rf95.setFrequency(RF_FREQUENCY);
         rf95.setThisAddress(RF_NODE_FROM);
@@ -48,10 +51,9 @@ int main(int argc, const char *argv[])
             rf95.setModeRx();
             auto t1 = std::chrono::high_resolution_clock::now();
 
-            if (std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count() > 1000)
+            if (std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count() > 2000)
             {
                 rf95.setModeTx();
-                t0 = std::chrono::high_resolution_clock::now();
 
                 uint8_t data[] = "Hi Raspi!";
                 int len = sizeof(data);
@@ -62,6 +64,8 @@ int main(int argc, const char *argv[])
 
                 rf95.send(data, len);
                 rf95.waitPacketSent();
+
+                t0 = std::chrono::high_resolution_clock::now();
             }
 
             if (rf95.available())
