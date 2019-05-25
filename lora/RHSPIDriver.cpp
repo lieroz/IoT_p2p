@@ -1,5 +1,11 @@
 #include "RHSPIDriver.h"
 
+#include <bcm2835.h>
+
+#include <RasPi.h>
+
+using namespace tools;
+
 RHSPIDriver::RHSPIDriver(uint8_t slaveSelectPin)
     : _slaveSelectPin(slaveSelectPin)
 {

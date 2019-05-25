@@ -16,7 +16,12 @@
 #include <signal.h>
 #include <unistd.h>
 
+#include <chrono>
+
 #include <RH_RF95.h>
+#include <RasPi.h>
+
+using namespace tools;
 
 // define hardware used change to fit your need
 // Uncomment the board you have, if not listed 
@@ -62,7 +67,6 @@ void sig_handler(int sig)
 //Main Function
 int main (int argc, const char* argv[] )
 {
-  static unsigned long last_millis;
   static unsigned long led_blink = 0;
   
   signal(SIGINT, sig_handler);
@@ -93,11 +97,6 @@ int main (int argc, const char* argv[] )
   bcm2835_delay((unsigned int)150);
   digitalWrite(RF_RST_PIN, HIGH );
   bcm2835_delay((unsigned int)100);
-#endif
-
-#ifdef RF_LED_PIN
-  printf( ", LED=GPIO%d", RF_LED_PIN );
-  digitalWrite(RF_LED_PIN, LOW );
 #endif
 
   if (!rf95.init()) {
@@ -141,32 +140,27 @@ int main (int argc, const char* argv[] )
     // This is our Node ID
     rf95.setThisAddress(RF_NODE_ID);
     rf95.setHeaderFrom(RF_NODE_ID);
-    
+
     // Where we're sending packet
     rf95.setHeaderTo(RF_GATEWAY_ID);  
 
     printf("RF95 node #%d init OK @ %3.2fMHz\n", RF_NODE_ID, RF_FREQUENCY );
 
-    last_millis = millis();
+    auto t0 = std::chrono::high_resolution_clock::now();
 
     //Begin the main body of code
     while (!force_exit) {
 
-      //printf( "millis()=%ld last=%ld diff=%ld\n", millis() , last_millis,  millis() - last_millis );
-
       // Send every 5 seconds
-      if ( millis() - last_millis > 5000 ) {
-        last_millis = millis();
+      auto t1 = std::chrono::high_resolution_clock::now();
+      if (std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count() > 5000)
+      {
+        t0 = std::chrono::high_resolution_clock::now();
 
-#ifdef RF_LED_PIN
-        led_blink = millis();
-        digitalWrite(RF_LED_PIN, HIGH);
-#endif
-        
         // Send a message to rf95_server
         uint8_t data[] = "Hi Raspi!";
         uint8_t len = sizeof(data);
-        
+
         printf("Sending %02d bytes to node #%d => ", len, RF_GATEWAY_ID );
         printbuffer(data, len);
         printf("\n" );
@@ -190,26 +184,14 @@ int main (int argc, const char* argv[] )
           printf("No reply, is rf95_server running?\n");
         }
 */
-        
       }
 
-#ifdef RF_LED_PIN
-      // Led blink timer expiration ?
-      if (led_blink && millis()-led_blink>200) {
-        led_blink = 0;
-        digitalWrite(RF_LED_PIN, LOW);
-      }
-#endif
-      
       // Let OS doing other tasks
       // Since we do nothing until each 5 sec
       bcm2835_delay((unsigned int)100);
     }
   }
 
-#ifdef RF_LED_PIN
-  digitalWrite(RF_LED_PIN, LOW );
-#endif
   bcm2835_close();
   return 0;
 }

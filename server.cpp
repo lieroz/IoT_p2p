@@ -17,6 +17,9 @@
 #include <unistd.h>
 
 #include <RH_RF95.h>
+#include <RasPi.h>
+
+using namespace tools;
 
 // define hardware used change to fit your need
 // Uncomment the board you have, if not listed 
@@ -144,12 +147,8 @@ int main (int argc, const char* argv[] )
 
     //Begin the main body of code
     while (!force_exit) {
-      
+
         if (rf95.available()) { 
-#ifdef RF_LED_PIN
-          led_blink = millis();
-          digitalWrite(RF_LED_PIN, HIGH);
-#endif
           // Should be a message for us now
           uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
           uint8_t len  = sizeof(buf);
@@ -158,7 +157,7 @@ int main (int argc, const char* argv[] )
           uint8_t id   = rf95.headerId();
           uint8_t flags= rf95.headerFlags();;
           int8_t rssi  = rf95.lastRssi();
-          
+
           if (rf95.recv(buf, &len)) {
             printf("Packet[%02d] #%d => #%d %ddB: ", len, from, to, rssi);
             printbuffer(buf, len);
@@ -167,14 +166,7 @@ int main (int argc, const char* argv[] )
           }
           printf("\n");
         }
-        
-#ifdef RF_LED_PIN
-      // Led blink timer expiration ?
-      if (led_blink && millis()-led_blink>200) {
-        led_blink = 0;
-        digitalWrite(RF_LED_PIN, LOW);
-      }
-#endif
+
       // Let OS doing other tasks
       // For timed critical appliation you can reduce or delete
       // this delay, but this will charge CPU usage, take care and monitor

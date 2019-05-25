@@ -1,10 +1,11 @@
 #pragma once
 
-#include "RadioHead.h"
+#include <cstdint>
 
 #define RH_FLAGS_RESERVED 0xf0
 #define RH_FLAGS_APPLICATION_SPECIFIC 0x0f
 #define RH_FLAGS_NONE 0
+#define RH_BROADCAST_ADDRESS 0xff
 
 #define RH_CAD_DEFAULT_TIMEOUT 10000
 

@@ -1,6 +1,7 @@
 #include "RH_RF95.h"
 
 #include <iostream>
+#include <cstring>
 
 static const RH_RF95::ModemConfig MODEM_CONFIG_TABLE[] =
 {
@@ -146,7 +147,7 @@ bool RH_RF95::recv(uint8_t* buf, uint8_t* len)
             *len = _bufLen-RH_RF95_HEADER_LEN;
         }
 
-        memcpy(buf, _buf+RH_RF95_HEADER_LEN, *len);
+        std::memcpy(buf, _buf+RH_RF95_HEADER_LEN, *len);
     }
 
     clearRxBuf();
@@ -308,7 +309,7 @@ bool RH_RF95::setModemConfig(ModemConfigChoice index)
     }
 
     ModemConfig cfg;
-    memcpy(&cfg, &MODEM_CONFIG_TABLE[index],
+    std::memcpy(&cfg, &MODEM_CONFIG_TABLE[index],
             sizeof(RH_RF95::ModemConfig));
     setModemRegisters(&cfg);
 
@@ -322,7 +323,7 @@ bool RH_RF95::getModemConfig(ModemConfigChoice index, ModemConfig* config)
         return false;
     }
 
-    memcpy(config, &MODEM_CONFIG_TABLE[index],
+    std::memcpy(config, &MODEM_CONFIG_TABLE[index],
             sizeof(RH_RF95::ModemConfig));
 
     return true;

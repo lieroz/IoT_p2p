@@ -1,6 +1,7 @@
 #include "RHGenericDriver.h"
 
 #include <iostream>
+#include <chrono>
 
 RHGenericDriver::RHGenericDriver()
     : _mode(RHModeInitialising),
@@ -31,16 +32,18 @@ void RHGenericDriver::waitAvailable()
 
 bool RHGenericDriver::waitAvailableTimeout(uint16_t timeout)
 {
-    unsigned long starttime = millis();
+    auto t0 = std::chrono::high_resolution_clock::now();
+    auto t1 = std::chrono::high_resolution_clock::now();
 
-    while ((millis() - starttime) < timeout)
+    while (std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count() < timeout)
     {
         if (available())
         {
-               return true;
+            return true;
         }
 
         // do dome useful work here, yield() analog;
+        t1 = std::chrono::high_resolution_clock::now();
     }
 
     return false;
@@ -58,9 +61,10 @@ bool RHGenericDriver::waitPacketSent()
 
 bool RHGenericDriver::waitPacketSent(uint16_t timeout)
 {
-    unsigned long starttime = millis();
+    auto t0 = std::chrono::high_resolution_clock::now();
+    auto t1 = std::chrono::high_resolution_clock::now();
 
-    while ((millis() - starttime) < timeout)
+    while (std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count() < timeout)
     {
         if (_mode != RHModeTx)
         {
@@ -68,6 +72,7 @@ bool RHGenericDriver::waitPacketSent(uint16_t timeout)
         }
 
         // do dome useful work here, yield() analog;
+        t1 = std::chrono::high_resolution_clock::now();
     }
 
     return false;
@@ -80,14 +85,17 @@ bool RHGenericDriver::waitCAD()
 	    return true;
     }
 
-    unsigned long t = millis();
+    auto t0 = std::chrono::high_resolution_clock::now();
+    auto t1 = std::chrono::high_resolution_clock::now();
 
     while (isChannelActive())
     {
-         if (millis() - t > _cad_timeout)
-         {
+        if (std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count() > _cad_timeout)
+        {
 	        return false;
-         }
+        }
+
+        t1 = std::chrono::high_resolution_clock::now();
     }
 
     return true;
