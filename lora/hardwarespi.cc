@@ -1,4 +1,4 @@
-#include "RHHardwareSPI.h"
+#include "hardwarespi.h"
 
 #include <bcm2835.h>
 

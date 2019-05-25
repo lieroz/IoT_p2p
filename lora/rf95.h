@@ -1,6 +1,6 @@
 #pragma once
 
-#include "RHSPIDriver.h"
+#include "spidriver.h"
 
 #define RH_RF95_NUM_INTERRUPTS 3
 #define RH_RF95_FIFO_SIZE 255

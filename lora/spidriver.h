@@ -2,8 +2,8 @@
 
 #include <cstdint>
 
-#include "RHGenericDriver.h"
-#include "RHHardwareSPI.h"
+#include "genericdriver.h"
+#include "hardwarespi.h"
 
 #define RH_SPI_WRITE_MASK 0x80
 #define SS 8

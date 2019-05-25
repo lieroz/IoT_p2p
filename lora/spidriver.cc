@@ -1,8 +1,8 @@
-#include "RHSPIDriver.h"
+#include "spidriver.h"
 
 #include <bcm2835.h>
 
-#include <RasPi.h>
+#include "tools.h"
 
 using namespace tools;
 

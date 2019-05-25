@@ -16,34 +16,10 @@
 #include <signal.h>
 #include <unistd.h>
 
-#include <RH_RF95.h>
-#include <RasPi.h>
+#include <rf95.h>
+#include <tools.h>
 
 using namespace tools;
-
-// define hardware used change to fit your need
-// Uncomment the board you have, if not listed 
-// uncommment custom board and set wiring tin custom section
-
-// LoRasPi board 
-// see https://github.com/hallard/LoRasPI
-#define BOARD_LORASPI
-
-// iC880A and LinkLab Lora Gateway Shield (if RF module plugged into)
-// see https://github.com/ch2i/iC880A-Raspberry-PI
-//#define BOARD_IC880A_PLATE
-
-// Raspberri PI Lora Gateway for multiple modules 
-// see https://github.com/hallard/RPI-Lora-Gateway
-//#define BOARD_PI_LORA_GATEWAY
-
-// Dragino Raspberry PI hat
-// see https://github.com/dragino/Lora
-//#define BOARD_DRAGINO_PIHAT
-
-// Now we include RasPi_Boards.h so this will expose defined 
-// constants with CS/IRQ/RESET/on board LED pins definition
-#include "RasPiBoards.h"
 
 // Our RFM95 Configuration 
 #define RF_FREQUENCY  868.00

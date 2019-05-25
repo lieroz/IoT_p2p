@@ -1,4 +1,4 @@
-#include "RH_RF95.h"
+#include "rf95.h"
 
 #include <iostream>
 #include <cstring>
