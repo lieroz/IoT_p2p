@@ -54,10 +54,9 @@ int main(int argc, const char *argv[])
                 t0 = std::chrono::high_resolution_clock::now();
 
                 uint8_t data[] = "Hi Raspi!";
-                uint8_t len = sizeof(data);
+                int len = sizeof(data);
 
-                std::cout << "Sending " << static_cast<int>(len)
-                          << " bytes to node #" << RF_NODE_TO << " => ";
+                std::cout << "Sending " << len << " bytes to node #" << RF_NODE_TO << " => ";
                 tools::printbuffer(data, len);
                 std::cout << std::endl;
 
@@ -68,14 +67,14 @@ int main(int argc, const char *argv[])
             if (rf95.available())
             {
                 uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
-                uint8_t len = sizeof(buf);
-                uint8_t from = rf95.headerFrom();
-                uint8_t to = rf95.headerTo();
-                uint8_t id = rf95.headerId();
-                uint8_t flags = rf95.headerFlags();;
-                int8_t rssi = rf95.lastRssi();
+                int len = sizeof(buf);
+                int from = rf95.headerFrom();
+                int to = rf95.headerTo();
+                int id = rf95.headerId();
+                int flags = rf95.headerFlags();;
+                int rssi = rf95.lastRssi();
 
-                if (rf95.recv(buf, &len))
+                if (rf95.recv(buf, (uint8_t *) &len))
                 {
                     std::cout << "Packet[" << len << "] #" << from << "=> #" << to << " " << rssi << "dB: ";
                     tools::printbuffer(buf, len);
