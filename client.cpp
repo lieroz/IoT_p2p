@@ -21,8 +21,6 @@
 #include <rf95.h>
 #include <tools.h>
 
-using namespace tools;
-
 // Our RFM95 Configuration 
 #define RF_FREQUENCY  868.00
 #define RF_GATEWAY_ID 1 
@@ -54,25 +52,25 @@ int main (int argc, const char* argv[] )
   printf( "RF95 CS=GPIO%d", RF_CS_PIN);
 
 #ifdef RF_LED_PIN
-  pinMode(RF_LED_PIN, OUTPUT);
-  digitalWrite(RF_LED_PIN, HIGH );
+  tools::pinMode(RF_LED_PIN, OUTPUT);
+  tools::digitalWrite(RF_LED_PIN, HIGH );
 #endif
 
 #ifdef RF_IRQ_PIN
   printf( ", IRQ=GPIO%d", RF_IRQ_PIN );
   // IRQ Pin input/pull down 
-  pinMode(RF_IRQ_PIN, INPUT);
+  tools::pinMode(RF_IRQ_PIN, INPUT);
   bcm2835_gpio_set_pud(RF_IRQ_PIN, BCM2835_GPIO_PUD_DOWN);
 #endif
   
 #ifdef RF_RST_PIN
   printf( ", RST=GPIO%d", RF_RST_PIN );
   // Pulse a reset on module
-  pinMode(RF_RST_PIN, OUTPUT);
-  digitalWrite(RF_RST_PIN, LOW );
-  bcm2835_delay((unsigned int)150);
-  digitalWrite(RF_RST_PIN, HIGH );
-  bcm2835_delay((unsigned int)100);
+  tools::pinMode(RF_RST_PIN, OUTPUT);
+  tools::digitalWrite(RF_RST_PIN, LOW );
+  tools::delay(150);
+  tools::digitalWrite(RF_RST_PIN, HIGH );
+  tools::delay(100);
 #endif
 
   if (!rf95.init()) {
@@ -138,7 +136,7 @@ int main (int argc, const char* argv[] )
         uint8_t len = sizeof(data);
 
         printf("Sending %02d bytes to node #%d => ", len, RF_GATEWAY_ID );
-        printbuffer(data, len);
+        tools::printbuffer(data, len);
         printf("\n" );
         rf95.send(data, len);
         rf95.waitPacketSent();
@@ -151,7 +149,7 @@ int main (int argc, const char* argv[] )
           // Should be a reply message for us now   
           if (rf95.recv(buf, &len)) {
             printf("got reply: ");
-            printbuffer(buf,len);
+            tools::printbuffer(buf,len);
             printf("\nRSSI: %d\n", rf95.lastRssi());
           } else {
             printf("recv failed");
@@ -164,7 +162,7 @@ int main (int argc, const char* argv[] )
 
       // Let OS doing other tasks
       // Since we do nothing until each 5 sec
-      bcm2835_delay((unsigned int)100);
+      tools::delay(100);
     }
   }
 

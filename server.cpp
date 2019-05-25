@@ -19,8 +19,6 @@
 #include <rf95.h>
 #include <tools.h>
 
-using namespace tools;
-
 // Our RFM95 Configuration 
 #define RF_FREQUENCY  868.00
 #define RF_NODE_ID    1
@@ -51,14 +49,14 @@ int main (int argc, const char* argv[] )
   printf( "RF95 CS=GPIO%d", RF_CS_PIN);
 
 #ifdef RF_LED_PIN
-  pinMode(RF_LED_PIN, OUTPUT);
-  digitalWrite(RF_LED_PIN, HIGH );
+  tools::pinMode(RF_LED_PIN, OUTPUT);
+  tools::digitalWrite(RF_LED_PIN, HIGH );
 #endif
 
 #ifdef RF_IRQ_PIN
   printf( ", IRQ=GPIO%d", RF_IRQ_PIN );
   // IRQ Pin input/pull down
-  pinMode(RF_IRQ_PIN, INPUT);
+  tools::pinMode(RF_IRQ_PIN, INPUT);
   bcm2835_gpio_set_pud(RF_IRQ_PIN, BCM2835_GPIO_PUD_DOWN);
   // Now we can enable Rising edge detection
   bcm2835_gpio_ren(RF_IRQ_PIN);
@@ -67,16 +65,16 @@ int main (int argc, const char* argv[] )
 #ifdef RF_RST_PIN
   printf( ", RST=GPIO%d", RF_RST_PIN );
   // Pulse a reset on module
-  pinMode(RF_RST_PIN, OUTPUT);
-  digitalWrite(RF_RST_PIN, LOW );
-  bcm2835_delay((unsigned int)150);
-  digitalWrite(RF_RST_PIN, HIGH );
-  bcm2835_delay((unsigned int)100);
+  tools::pinMode(RF_RST_PIN, OUTPUT);
+  tools::digitalWrite(RF_RST_PIN, LOW );
+  tools::delay(150);
+  tools::digitalWrite(RF_RST_PIN, HIGH );
+  tools::delay(100);
 #endif
 
 #ifdef RF_LED_PIN
   printf( ", LED=GPIO%d", RF_LED_PIN );
-  digitalWrite(RF_LED_PIN, LOW );
+  tools::digitalWrite(RF_LED_PIN, LOW );
 #endif
 
   if (!rf95.init()) {
@@ -136,7 +134,7 @@ int main (int argc, const char* argv[] )
 
           if (rf95.recv(buf, &len)) {
             printf("Packet[%02d] #%d => #%d %ddB: ", len, from, to, rssi);
-            printbuffer(buf, len);
+            tools::printbuffer(buf, len);
           } else {
             printf("receive failed\n");
           }
@@ -146,12 +144,12 @@ int main (int argc, const char* argv[] )
       // Let OS doing other tasks
       // For timed critical appliation you can reduce or delete
       // this delay, but this will charge CPU usage, take care and monitor
-      bcm2835_delay((unsigned int)5);
+        tools::delay(5);
     }
   }
 
 #ifdef RF_LED_PIN
-  digitalWrite(RF_LED_PIN, LOW );
+  tools::digitalWrite(RF_LED_PIN, LOW );
 #endif
   bcm2835_close();
   return 0;
