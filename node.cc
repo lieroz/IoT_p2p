@@ -48,7 +48,7 @@ int main(int argc, const char *argv[])
             rf95.setModeRx();
             auto t1 = std::chrono::high_resolution_clock::now();
 
-            if (std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count() > 5000)
+            if (std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count() > 1000)
             {
                 rf95.setModeTx();
                 t0 = std::chrono::high_resolution_clock::now();
@@ -78,6 +78,7 @@ int main(int argc, const char *argv[])
                 {
                     std::cout << "Packet[" << len << "] #" << from << "=> #" << to << " " << rssi << "dB: ";
                     tools::printbuffer(buf, len);
+                    std::cout << std::endl;
                 }
                 else
                 {
