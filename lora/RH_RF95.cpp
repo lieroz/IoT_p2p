@@ -1,5 +1,7 @@
 #include "RH_RF95.h"
 
+#include <iostream>
+
 static const RH_RF95::ModemConfig MODEM_CONFIG_TABLE[] =
 {
     {0x72, 0x74, 0x00},
@@ -204,9 +206,7 @@ bool RH_RF95::printRegisters()
 {
     for (uint8_t i = 0; i < sizeof(registers); i++)
     {
-        Serial.print(registers[i], HEX);
-        Serial.print(": ");
-        Serial.println(spiRead(registers[i]), HEX);
+        std::cout << std::hex << registers[i] << ": " << spiRead(registers[i]) << std::endl;
     }
 
     return true;
@@ -308,7 +308,7 @@ bool RH_RF95::setModemConfig(ModemConfigChoice index)
     }
 
     ModemConfig cfg;
-    memcpy_P(&cfg, &MODEM_CONFIG_TABLE[index],
+    memcpy(&cfg, &MODEM_CONFIG_TABLE[index],
             sizeof(RH_RF95::ModemConfig));
     setModemRegisters(&cfg);
 
@@ -322,7 +322,7 @@ bool RH_RF95::getModemConfig(ModemConfigChoice index, ModemConfig* config)
         return false;
     }
 
-    memcpy_P(config, &MODEM_CONFIG_TABLE[index],
+    memcpy(config, &MODEM_CONFIG_TABLE[index],
             sizeof(RH_RF95::ModemConfig));
 
     return true;

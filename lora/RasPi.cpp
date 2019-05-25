@@ -5,95 +5,33 @@
 
 #include "RadioHead.h"
 
+#ifndef NOT_A_PIN
+ #define NOT_A_PIN 0xFF
+#endif
+
 timeval RHStartTime;
-
-void SPIClass::begin()
-{
-    uint16_t divider = BCM2835_SPI_CLOCK_DIVIDER_256;
-    uint8_t bitorder = BCM2835_SPI_BIT_ORDER_MSBFIRST;
-    uint8_t datamode = BCM2835_SPI_MODE0;
-    begin(divider, bitorder, datamode);
-}
-
-void SPIClass::begin(uint16_t divider, uint8_t bitOrder, uint8_t dataMode)
-{
-    setClockDivider(divider);
-    setBitOrder(bitOrder);
-    setDataMode(dataMode);
-    bcm2835_spi_chipSelect(BCM2835_SPI_CS_NONE); // RH Library code control CS line
-
-    bcm2835_spi_begin();
-
-    //Initialize a timestamp for millis calculation
-    gettimeofday(&RHStartTime, NULL);
-}
-
-void SPIClass::end()
-{
-    //End the SPI
-    bcm2835_spi_end();
-}
-
-void SPIClass::setBitOrder(uint8_t bitOrder)
-{
-    //Set the SPI bit Order
-    bcm2835_spi_setBitOrder(bitOrder);
-}
-
-void SPIClass::setDataMode(uint8_t mode)
-{
-    //Set SPI data mode
-    bcm2835_spi_setDataMode(mode);
-}
-
-void SPIClass::setClockDivider(uint16_t rate)
-{
-    //Set SPI clock divider
-    bcm2835_spi_setClockDivider(rate);
-}
-
-uint8_t SPIClass::transfer(uint8_t _data)
-{
-    //Set which CS pin to use for next transfers
-    bcm2835_spi_chipSelect(BCM2835_SPI_CS_NONE);
-    //Transfer 1 byte
-
-    //printf("SPIClass::transfer(%02X)", _data);
-    uint8_t data;
-    data = bcm2835_spi_transfer((uint8_t)_data);
-
-    return data;
-}
 
 void pinMode(unsigned char pin, unsigned char mode)
 {
-    if (pin == NOT_A_PIN)
+    if (pin != NOT_A_PIN)
     {
-        return;
+        mode == OUTPUT
+            ? bcm2835_gpio_fsel(pin, BCM2835_GPIO_FSEL_OUTP)
+            : bcm2835_gpio_fsel(pin, BCM2835_GPIO_FSEL_INPT);
     }
-
-    mode == OUTPUT
-        ? bcm2835_gpio_fsel(pin,BCM2835_GPIO_FSEL_OUTP)
-        : bcm2835_gpio_fsel(pin,BCM2835_GPIO_FSEL_INPT);
 }
 
 void digitalWrite(unsigned char pin, unsigned char value)
 {
-    if (pin == NOT_A_PIN)
+    if (pin != NOT_A_PIN)
     {
-        return;
+        bcm2835_gpio_write(pin, value);
     }
-
-    bcm2835_gpio_write(pin,value);
 }
 
-unsigned char digitalRead(unsigned char pin) {
-    if (pin == NOT_A_PIN)
-    {
-        return 0;
-    }
-
-    return bcm2835_gpio_lev(pin);
+unsigned char digitalRead(unsigned char pin)
+{
+    return pin == NOT_A_PIN ? 0 : bcm2835_gpio_lev(pin);
 }
 
 unsigned long millis()
@@ -110,83 +48,13 @@ unsigned long millis()
     return difference;
 }
 
-void delay (unsigned long ms)
+void delay(unsigned long ms)
 {
-    //Implement Delay function
-    struct timespec ts;
-    ts.tv_sec = 0;
-    ts.tv_nsec = (ms * 1000);
-    nanosleep(&ts, &ts);
-}
-
-long random(long min, long max)
-{
-    long diff = max - min;
-    long ret = diff * rand() + min;
-
-    return ret;
-}
-
-void SerialSimulator::begin(int baud)
-{
-    //No implementation neccesary - Serial emulation on Linux = standard console
-    //
-    //Initialize a timestamp for millis calculation - we do this here as well in case SPI
-    //isn't used for some reason
-    gettimeofday(&RHStartTime, NULL);
-}
-
-size_t SerialSimulator::println(const char* s)
-{
-    print(s);
-    printf("\n");
-}
-
-size_t SerialSimulator::print(const char* s)
-{
-    printf(s);
-}
-
-size_t SerialSimulator::print(unsigned int n, int base)
-{
-    if (base == DEC)
-    {
-        printf("%d", n);
-    }
-    else if (base == HEX)
-    {
-        printf("%02x", n);
-    }
-    else if (base == OCT)
-    {
-        printf("%o", n);
-    }
-    // TODO: BIN
-}
-
-size_t SerialSimulator::print(char ch)
-{
-    printf("%c", ch);
-}
-
-size_t SerialSimulator::println(char ch)
-{
-    printf("%c\n", ch);
-}
-
-size_t SerialSimulator::print(unsigned char ch, int base)
-{
-    return print((unsigned int)ch, base);
-}
-
-size_t SerialSimulator::println(unsigned char ch, int base)
-{
-    print((unsigned int)ch, base);
-    printf("\n");
+    bcm2835_delay(ms);
 }
 
 void printbuffer(uint8_t buff[], int len)
-{    
+{
     bool ascii = true;
 
     for (int i = 0; i < len; i++)
@@ -195,11 +63,11 @@ void printbuffer(uint8_t buff[], int len)
         {
             if (buff[i] != 0 || i != len - 1)
             {
-                ascii = false; 
+                ascii = false;
                 break;
             }
         }
-    }  
+    }
 
     for (int i = 0; i < len; i++)
     {
@@ -211,6 +79,6 @@ void printbuffer(uint8_t buff[], int len)
         {
             printf(" %02X", buff[i]);
         }
-    }  
-}    
+    }
+}
 

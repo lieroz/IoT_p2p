@@ -19,47 +19,6 @@
  #define NOT_A_PIN 0xFF
 #endif
 
-// No memcpy_P Raspberry PI
-#ifndef memcpy_P
- #define memcpy_P memcpy
-#endif
-
-class SPIClass
-{
-public:
-    static uint8_t transfer(uint8_t _data);
-    static void begin();
-    static void begin(uint16_t, uint8_t, uint8_t);
-    static void end();
-
-    static void setBitOrder(uint8_t);
-    static void setDataMode(uint8_t);
-    static void setClockDivider(uint16_t);
-};
-
-extern SPIClass SPI;
-
-class SerialSimulator
-{
-public:
-    #define DEC 10
-    #define HEX 16
-    #define OCT 8
-    #define BIN 2
-
-    // TODO: move these from being inlined
-    static void begin(int baud);
-    static size_t println(const char* s);
-    static size_t print(const char* s);
-    static size_t print(unsigned int n, int base = DEC);
-    static size_t print(char ch);
-    static size_t println(char ch);
-    static size_t print(unsigned char ch, int base = DEC);
-    static size_t println(unsigned char ch, int base = DEC);
-};
-
-extern SerialSimulator Serial;
-
 void RasPiSetup();
 void pinMode(unsigned char pin, unsigned char mode);
 void digitalWrite(unsigned char pin, unsigned char value);

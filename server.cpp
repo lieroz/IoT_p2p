@@ -163,7 +163,7 @@ int main (int argc, const char* argv[] )
             printf("Packet[%02d] #%d => #%d %ddB: ", len, from, to, rssi);
             printbuffer(buf, len);
           } else {
-            Serial.print("receive failed");
+            printf("receive failed\n");
           }
           printf("\n");
         }
