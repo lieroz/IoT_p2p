@@ -51,15 +51,14 @@ int main(int argc, const char *argv[])
         std::cout << "OK NodeID: " << rfFrom << " @ " << RF_FREQUENCY << "MHz" << std::endl;
         std::cout << "Listening packet..." << std::endl;
 
-        auto t0 = std::chrono::high_resolution_clock::now();
+//        auto t0 = std::chrono::high_resolution_clock::now();
 
         while (!forceExit)
         {
-            rf95.setModeRx();
-            auto t1 = std::chrono::high_resolution_clock::now();
+//            auto t1 = std::chrono::high_resolution_clock::now();
 
-            if (std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count() > 2000)
-            {
+//            if (std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count() > 3000)
+//            {
                 rf95.setModeTx();
 
                 uint8_t data[] = "Hi Raspi!";
@@ -72,8 +71,10 @@ int main(int argc, const char *argv[])
                 rf95.send(data, len);
                 rf95.waitPacketSent();
 
-                t0 = std::chrono::high_resolution_clock::now();
-            }
+//                t0 = std::chrono::high_resolution_clock::now();
+//            }
+
+            rf95.setModeRx();
 
             if (rf95.available())
             {
