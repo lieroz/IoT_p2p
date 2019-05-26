@@ -7,8 +7,6 @@
 #include <rf95.h>
 #include <tools.h>
 
-#define RF_NODE_FROM 1
-#define RF_NODE_TO 2
 #define RF_FREQUENCY  868.00
 
 bool forceExit = false;
@@ -20,8 +18,17 @@ void sig_handler(int sig)
 
 int main(int argc, const char *argv[])
 {
+    if (argc < 3)
+    {
+        std::cerr << "missing FROM && TO" << std::endl;
+        return 1;
+    }
+
     RH_RF95 rf95(RF_CS_PIN, RF_IRQ_PIN);
     signal(SIGINT, sig_handler);
+
+    const int rfFrom = std::stoi(argv[1]);
+    const int rfTo = std::stoi(argv[2]);
 
     if (!bcm2835_init())
     {
@@ -36,12 +43,12 @@ int main(int argc, const char *argv[])
     {
         rf95.setTxPower(14, false);
         rf95.setFrequency(RF_FREQUENCY);
-        rf95.setThisAddress(RF_NODE_FROM);
-        rf95.setHeaderFrom(RF_NODE_FROM);
-        rf95.setHeaderTo(RF_NODE_TO);
+        rf95.setThisAddress(rfFrom);
+        rf95.setHeaderFrom(rfFrom);
+        rf95.setHeaderTo(rfTo);
         rf95.setPromiscuous(true);
 
-        std::cout << "OK NodeID: " << RF_NODE_FROM << " @ " << RF_FREQUENCY << "MHz" << std::endl;
+        std::cout << "OK NodeID: " << rfFrom << " @ " << RF_FREQUENCY << "MHz" << std::endl;
         std::cout << "Listening packet..." << std::endl;
 
         auto t0 = std::chrono::high_resolution_clock::now();
@@ -58,7 +65,7 @@ int main(int argc, const char *argv[])
                 uint8_t data[] = "Hi Raspi!";
                 int len = sizeof(data);
 
-                std::cout << "Sending " << len << " bytes to node #" << RF_NODE_TO << " => ";
+                std::cout << "Sending " << len << " bytes to node #" << rfTo << " => ";
                 tools::printbuffer(data, len);
                 std::cout << std::endl;
 
