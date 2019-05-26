@@ -18,17 +18,18 @@ void sig_handler(int sig)
 
 int main(int argc, const char *argv[])
 {
-    if (argc < 3)
+    if (argc < 4)
     {
-        std::cerr << "missing FROM && TO" << std::endl;
+        std::cerr << "not enough params" << std::endl;
         return 1;
     }
 
     RH_RF95 rf95(RF_CS_PIN, RF_IRQ_PIN);
     signal(SIGINT, sig_handler);
 
-    const int rfFrom = std::stoi(argv[1]);
-    const int rfTo = std::stoi(argv[2]);
+    const int nodeId = std::stoi(argv[1]);
+    const int rfFrom = std::stoi(argv[2]);
+    const int rfTo = std::stoi(argv[3]);
 
     if (!bcm2835_init())
     {
@@ -41,6 +42,8 @@ int main(int argc, const char *argv[])
     }
     else
     {
+        rf95.setNodeId(nodeId);
+
         rf95.setTxPower(14, false);
         rf95.setFrequency(RF_FREQUENCY);
         rf95.setThisAddress(rfFrom);
@@ -48,17 +51,18 @@ int main(int argc, const char *argv[])
         rf95.setHeaderTo(rfTo);
         rf95.setPromiscuous(true);
 
-        std::cout << "OK NodeID: " << rfFrom << " @ " << RF_FREQUENCY << "MHz" << std::endl;
+        std::cout << "OK NodeID: " << nodeId << " @ " << RF_FREQUENCY << "MHz" << std::endl;
         std::cout << "Listening packet..." << std::endl;
 
-//        auto t0 = std::chrono::high_resolution_clock::now();
+        auto t0 = std::chrono::high_resolution_clock::now();
 
         while (!forceExit)
         {
-//            auto t1 = std::chrono::high_resolution_clock::now();
+            rf95.setModeRx();
+            auto t1 = std::chrono::high_resolution_clock::now();
 
-//            if (std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count() > 3000)
-//            {
+            if (std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count() > 1000)
+            {
                 rf95.setModeTx();
 
                 uint8_t data[] = "Hi Raspi!";
@@ -71,10 +75,8 @@ int main(int argc, const char *argv[])
                 rf95.send(data, len);
                 rf95.waitPacketSent();
 
-//                t0 = std::chrono::high_resolution_clock::now();
-//            }
-
-            rf95.setModeRx();
+                t0 = std::chrono::high_resolution_clock::now();
+            }
 
             if (rf95.available())
             {

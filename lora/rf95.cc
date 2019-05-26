@@ -77,12 +77,15 @@ void RH_RF95::validateRxBuf()
     _rxHeaderId    = _buf[2];
     _rxHeaderFlags = _buf[3];
 
-    if (_promiscuous
-        || _rxHeaderTo == _thisAddress
-        || _rxHeaderTo == RH_BROADCAST_ADDRESS)
+    if (getNodeId() != _rxHeaderFrom)
     {
-        _rxGood++;
-        _rxBufValid = true;
+        if (_promiscuous
+            || _rxHeaderTo == _thisAddress
+            || _rxHeaderTo == RH_BROADCAST_ADDRESS)
+        {
+            _rxGood++;
+            _rxBufValid = true;
+        }
     }
 }
 
@@ -147,7 +150,7 @@ bool RH_RF95::recv(uint8_t* buf, uint8_t* len)
             *len = _bufLen-RH_RF95_HEADER_LEN;
         }
 
-        std::memcpy(buf, _buf+RH_RF95_HEADER_LEN, *len);
+        std::memcpy(buf, _buf + RH_RF95_HEADER_LEN, *len);
     }
 
     clearRxBuf();

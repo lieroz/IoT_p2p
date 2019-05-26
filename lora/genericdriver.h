@@ -65,10 +65,15 @@ public:
     uint16_t rxGood();
     uint16_t txGood();
 
+    void setNodeId(int id);
+    int getNodeId();
+
 protected:
     volatile RHMode _mode;
     uint8_t _thisAddress;
     bool _promiscuous;
+
+    int nodeId;
 
     volatile uint8_t _rxHeaderTo;
     volatile uint8_t _rxHeaderFrom;
