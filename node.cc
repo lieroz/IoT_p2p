@@ -27,9 +27,8 @@ int main(int argc, const char *argv[])
     RH_RF95 rf95(RF_CS_PIN, RF_IRQ_PIN);
     signal(SIGINT, sig_handler);
 
-    const int nodeId = std::stoi(argv[1]);
-    const int rfFrom = std::stoi(argv[2]);
-    const int rfTo = std::stoi(argv[3]);
+    const int rfFrom = std::stoi(argv[1]);
+    const int rfTo = std::stoi(argv[2]);
 
     if (!bcm2835_init())
     {
@@ -42,7 +41,7 @@ int main(int argc, const char *argv[])
     }
     else
     {
-        rf95.setNodeId(nodeId);
+        rf95.setNodeId(rfFrom);
 
         rf95.setTxPower(14, false);
         rf95.setFrequency(RF_FREQUENCY);
@@ -51,7 +50,7 @@ int main(int argc, const char *argv[])
         rf95.setHeaderTo(rfTo);
         rf95.setPromiscuous(true);
 
-        std::cout << "OK NodeID: " << nodeId << " @ " << RF_FREQUENCY << "MHz" << std::endl;
+        std::cout << "OK NodeID: " << rfFrom << " @ " << RF_FREQUENCY << "MHz" << std::endl;
         std::cout << "Listening packet..." << std::endl;
 
         auto t0 = std::chrono::high_resolution_clock::now();
