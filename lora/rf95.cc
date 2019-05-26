@@ -77,15 +77,12 @@ void RH_RF95::validateRxBuf()
     _rxHeaderId    = _buf[2];
     _rxHeaderFlags = _buf[3];
 
-    if (getNodeId() != _rxHeaderFrom)
+    if (_promiscuous
+        || _rxHeaderTo == _thisAddress
+        || _rxHeaderTo == RH_BROADCAST_ADDRESS)
     {
-        if (_promiscuous
-            || _rxHeaderTo == _thisAddress
-            || _rxHeaderTo == RH_BROADCAST_ADDRESS)
-        {
-            _rxGood++;
-            _rxBufValid = true;
-        }
+        _rxGood++;
+        _rxBufValid = true;
     }
 }
 

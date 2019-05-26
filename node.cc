@@ -26,7 +26,6 @@ void syn()
     const uint8_t sessionId = dist(rng);
     const uint8_t nodeFrom = dist(rng);
 
-    rf95.setNodeId(nodeFrom);
     rf95.setHeaderFrom(nodeFrom);
     rf95.setHeaderId(sessionId);
 
@@ -70,7 +69,6 @@ void synAck(const uint8_t nodeTo, const uint8_t sessionId)
 
     const uint8_t nodeFrom = dist(rng);
 
-    rf95.setNodeId(nodeFrom);
     rf95.setHeaderFrom(nodeFrom);
     rf95.setHeaderTo(nodeTo);
     rf95.setHeaderId(sessionId);

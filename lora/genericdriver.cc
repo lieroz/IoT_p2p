@@ -217,13 +217,3 @@ void RHGenericDriver::setCADTimeout(unsigned long cad_timeout)
     _cad_timeout = cad_timeout;
 }
 
-
-void RHGenericDriver::setNodeId(int id)
-{
-    nodeId = id;
-}
-
-int RHGenericDriver::getNodeId()
-{
-    return nodeId;
-}
