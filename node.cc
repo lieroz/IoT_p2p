@@ -18,7 +18,7 @@ void sig_handler(int sig)
 
 int main(int argc, const char *argv[])
 {
-    if (argc < 4)
+    if (argc < 3)
     {
         std::cerr << "not enough params" << std::endl;
         return 1;
