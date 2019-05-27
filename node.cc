@@ -1,22 +1,20 @@
 #include <iostream>
 #include <cstring>
-#include <atomic>
 #include <csignal>
+#include <unistd.h>
 
 #include <lora.h>
 
-bool forceExit = false;
-bool handshake = false;
-
 void sigHandler(int sig)
 {
-    forceExit = true;
     exit(1);
 }
 
 void tx_f(txData *tx)
 {
     LoRa_ctl *modem = (LoRa_ctl *)(tx->userPtr);
+    memcpy(modem->tx.data.buf, "Ping", 5);
+    modem->tx.data.size = 5;
 
     printf("tx done;\t");
     printf("sent string: \"%s\"\n", tx->buf); //Data we've sent
@@ -55,8 +53,6 @@ void init(LoRa_ctl *modem, char *txbuf, char *rxbuf)
     modem->rx.data.buf = rxbuf;
     modem->rx.data.userPtr = (void *)(modem); //To handle with chip from rx callback
     modem->tx.data.userPtr = (void *)(modem); //To handle with chip from tx callback
-    memcpy(modem->tx.data.buf, "Ping", 5);
-    modem->tx.data.size = 5;
     modem->eth.preambleLen = 6;
     modem->eth.bw = BW62_5; //Bandwidth 62.5KHz
     modem->eth.sf = SF12; //Spreading Factor 12
@@ -90,9 +86,11 @@ int main()
         return 1;
     }
 
-    while (!forceExit)
+    LoRa_send(&modem);
+
+    while (LoRa_get_op_mode(&modem) != SLEEP_MODE)
     {
-        LoRa_send(&modem);
+        sleep(1);
     }
 
     printf("end\n");
