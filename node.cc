@@ -1,14 +1,8 @@
 #include <iostream>
 #include <cstring>
-#include <csignal>
 #include <unistd.h>
 
 #include <lora.h>
-
-void sigHandler(int sig)
-{
-    exit(1);
-}
 
 void tx_f(txData *tx)
 {
@@ -72,8 +66,6 @@ void init(LoRa_ctl *modem, char *txbuf, char *rxbuf)
 
 int main()
 {
-    signal(SIGINT, sigHandler);
-
     char txbuf[255];
     char rxbuf[255];
     LoRa_ctl modem;
@@ -88,10 +80,9 @@ int main()
 
     LoRa_send(&modem);
 
-    while (LoRa_get_op_mode(&modem) != SLEEP_MODE)
-    {
+    do {
         sleep(1);
-    }
+    } while (LoRa_get_op_mode(&modem) != SLEEP_MODE);
 
     printf("end\n");
     LoRa_end(&modem);
