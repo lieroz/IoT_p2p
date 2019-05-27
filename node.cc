@@ -18,8 +18,6 @@ void tx_f(txData *tx)
     printf("sent string: \"%s\"\n", tx->buf); //Data we've sent
 
     LoRa_receive(modem);
-    std::this_thread::sleep_for(3s);
-    LoRa_send(modem);
 }
 
 void rx_f(rxData *rx)
@@ -84,6 +82,7 @@ int main()
         return 1;
     }
 
+    LoRa_receive(&modem);
     LoRa_send(&modem);
 
     while (LoRa_get_op_mode(&modem) != SLEEP_MODE);
