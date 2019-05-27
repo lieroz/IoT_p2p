@@ -78,11 +78,12 @@ int main()
         return 1;
     }
 
-    LoRa_send(&modem);
-    sleep(2);
     LoRa_receive(&modem);
 
-    while (LoRa_get_op_mode(&modem) != SLEEP_MODE);
+    while (LoRa_get_op_mode(&modem) != SLEEP_MODE)
+    {
+        sleep(1);
+    }
 
     printf("end\n");
     LoRa_end(&modem);
