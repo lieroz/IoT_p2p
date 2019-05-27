@@ -1,12 +1,8 @@
 #include <iostream>
 #include <cstring>
 #include <unistd.h>
-#include <thread>
-#include <chrono>
 
 #include <lora.h>
-
-using namespace std::chrono_literals;
 
 void tx_f(txData *tx)
 {
@@ -82,8 +78,9 @@ int main()
         return 1;
     }
 
-    LoRa_receive(&modem);
     LoRa_send(&modem);
+    sleep(2);
+    LoRa_receive(&modem);
 
     while (LoRa_get_op_mode(&modem) != SLEEP_MODE);
 
