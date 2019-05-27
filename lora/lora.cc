@@ -1,5 +1,13 @@
 #include "lora.h"
 
+#include <pigpio.h>
+#include <string.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <math.h>
+#include <sys/time.h>
+#include <stdio.h>
+
 int LoRa_begin(LoRa_ctl *modem){
     if (gpioInitialise() < 0)
     {

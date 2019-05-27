@@ -1,13 +1,6 @@
-#include <pigpio.h>
 #include <pthread.h>
-#include <string.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <sys/time.h>
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #define REG_FIFO 0x00
 #define REG_OP_MODE 0x01
