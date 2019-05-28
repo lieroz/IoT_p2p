@@ -64,8 +64,14 @@ void init(LoRa_ctl *modem, char *txbuf, char *rxbuf)
     //For detail information about SF, Error Coding Rate, Explicit header, Bandwidth, AGC, Over current protection and other features refer to sx127x datasheet https://www.semtech.com/uploads/documents/DS_SX1276-7-8-9_W_APP_V5.pdf
 }
 
-int main()
+int main(int argc, const char *argv[])
 {
+    if (argc < 2)
+    {
+        std::cerr << "Plz specify sender or receiver" << std::endl;
+        return 1;
+    }
+
     char txbuf[255];
     char rxbuf[255];
     LoRa_ctl modem;
@@ -78,7 +84,19 @@ int main()
         return 1;
     }
 
-    LoRa_receive(&modem);
+    if (std::strcmp(argv[1], "receiver") == 0)
+    {
+        LoRa_receive(&modem);
+    }
+    else if (std::strcmp(argv[1], "sender") == 0)
+    {
+        LoRa_send(&modem);
+    }
+    else
+    {
+        std::cerr << "Unknown node start option" << std::endl;
+        return 1;
+    }
 
     while (LoRa_get_op_mode(&modem) != SLEEP_MODE)
     {
