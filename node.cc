@@ -32,20 +32,36 @@ void rx_f(rxData *rx)
     const char* data;
     std::size_t len = 0;
 
-    if (std::strcmp(rx->buf, "syn") == 0)
+    if (!connectionEstablished)
     {
-        data = "ack";
-        len = std::strlen(data);
-    }
-    else if (std::strcmp(rx->buf, "ack") == 0)
-    {
-        data = "syn";
-        len = std::strlen(data);
+        if (std::strcmp(rx->buf, "syn") == 0)
+        {
+            data = "synack";
+            len = std::strlen(data);
+            connectionEstablished = true;
+        }
+        else if (std::strcmp(rx->buf, "synack") == 0)
+        {
+            data = "ack";
+            len = std::strlen(data);
+        }
+        else if (std::strcmp(rx->buf, "ack") == 0)
+        {
+            data = "ack";
+            len = std::strlen(data);
+            connectionEstablished = true;
+        }
+        else
+        {
+            std::cerr << "Unknown handshake step" << std::endl;
+            LoRa_sleep(modem);
+            return;
+        }
     }
     else
     {
-        LoRa_sleep(modem);
-        return;
+        data = "making tunnel great again";
+        len = std::strlen(data);
     }
 
     std::memset(modem->tx.data.buf, '\0', 255);
