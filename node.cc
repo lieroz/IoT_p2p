@@ -33,6 +33,7 @@ void rx_f(rxData *rx)
     {
         data = "synack";
         len = std::strlen(data);
+        std::cout << "LEN: " << len << std::endl;
     }
     else if (std::strcmp(rx->buf, "synack") == 0)
     {
@@ -51,7 +52,7 @@ void rx_f(rxData *rx)
         return;
     }
 
-    memcpy(modem->tx.data.buf, data, len);
+    std::memcpy(modem->tx.data.buf, data, len);
     modem->tx.data.size = len;
 
     LoRa_send(modem);
