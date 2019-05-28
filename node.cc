@@ -51,6 +51,7 @@ void rx_f(rxData *rx)
         return;
     }
 
+    std::memset(modem->tx.data.buf, '\0', 255);
     std::memcpy(modem->tx.data.buf, data, len);
     modem->tx.data.size = len;
 
