@@ -52,7 +52,7 @@ void rx_f(rxData *rx)
     }
 
     std::memcpy(modem->tx.data.buf, data, len);
-    modem-tx.data.buf[len] = '\0';
+    modem->tx.data.buf[len] = '\0';
     modem->tx.data.size = len;
 
     LoRa_send(modem);
