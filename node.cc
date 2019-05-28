@@ -7,8 +7,6 @@
 void tx_f(txData *tx)
 {
     LoRa_ctl *modem = (LoRa_ctl *)(tx->userPtr);
-    memcpy(modem->tx.data.buf, "Ping", 5);
-    modem->tx.data.size = 5;
 
     printf("tx done;\t");
     printf("sent string: \"%s\"\n", tx->buf); //Data we've sent
@@ -28,10 +26,38 @@ void rx_f(rxData *rx)
     printf("RSSI: %d;\t", rx->RSSI);
     printf("SNR: %f\n\n", rx->SNR);
 
-    memcpy(modem->tx.data.buf, "Pong", 5); //copy data we'll sent to buffer
-    modem->tx.data.size = 5; //Payload len
+    const char *data;
+
+    if (std::strcmp(rx->buf, "syn") == 0)
+    {
+        const char *data = "synack";
+        std::size_t len = std::strlen(data);
+        memcpy(modem->tx.data.buf, data, len);
+        modem->tx.data.size = len;
+    }
+    else if (std::strcmp(rx->buf, "synack") == 0)
+    {
+        const char *data = "ack";
+        std::size_t len = std::strlen(data);
+        memcpy(modem->tx.data.buf, data, len);
+        modem->tx.data.size = len;
+
+    }
+    else if (std::strcmp(rx->buf, "ack") == 0)
+    {
+        const char *data = "syn";
+        std::size_t len = std::strlen(data);
+        memcpy(modem->tx.data.buf, data, len);
+        modem->tx.data.size = len;
+    }
+    else
+    {
+        LoRa_sleep(modem);
+        return;
+    }
 
     LoRa_send(modem);
+
     printf("Time on air data - Tsym: %f;\t", modem->tx.data.Tsym);
     printf("Tpkt: %f;\t", modem->tx.data.Tpkt);
     printf("payloadSymbNb: %u\n", modem->tx.data.payloadSymbNb);
@@ -90,8 +116,10 @@ int main(int argc, const char *argv[])
     }
     else if (std::strcmp(argv[1], "sender") == 0)
     {
-        memcpy(modem.tx.data.buf, "Ping", 5);
-        modem.tx.data.size = 5;
+        const char *data = "syn";
+        std::size_t len = std::strlen(data);
+        memcpy(modem.tx.data.buf, data, len);
+        modem.tx.data.size = len;
         LoRa_send(&modem);
     }
     else
