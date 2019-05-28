@@ -4,6 +4,8 @@
 
 #include <lora.h>
 
+bool connectionEstablished = false;
+
 void tx_f(txData *tx)
 {
     LoRa_ctl *modem = (LoRa_ctl *)(tx->userPtr);
@@ -32,14 +34,8 @@ void rx_f(rxData *rx)
 
     if (std::strcmp(rx->buf, "syn") == 0)
     {
-        data = "synack";
-        len = std::strlen(data);
-    }
-    else if (std::strcmp(rx->buf, "synack") == 0)
-    {
         data = "ack";
         len = std::strlen(data);
-
     }
     else if (std::strcmp(rx->buf, "ack") == 0)
     {
