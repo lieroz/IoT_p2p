@@ -258,6 +258,8 @@ void rxDoneISRf(int gpio_n, int level, uint32_t tick, void *modemptr)
             modem->rx.data.size = rx_nb_bytes;
         }
 
+        printf("%s\n", modem->rx.data.buf);
+
         modem->rx.data.CRC = (lora_reg_read_byte(modem->spid, REG_IRQ_FLAGS) & 0x20);
         lora_get_rssi_pkt(modem);
         lora_get_snr(modem);
@@ -527,11 +529,11 @@ int lora_reg_write_byte(int spid, unsigned char reg, unsigned char byte)
 int lora_reg_read_bytes(int spid, unsigned char reg, char *buff, unsigned char size)
 {
     int ret;
-    char tx[257];
-    char rx[257];
+    char tx[255];
+    char rx[255];
 
-    memset(tx, '\0', 257);
-    memset(rx, '\0', 257);
+    memset(tx, '\0', 255);
+    memset(rx, '\0', 255);
     memset(buff, '\0', size);
     tx[0] = reg;
     ret = spiXfer(spid, tx, rx, size + 1);
@@ -541,10 +543,10 @@ int lora_reg_read_bytes(int spid, unsigned char reg, char *buff, unsigned char s
 
 int lora_reg_write_bytes(int spid, unsigned char reg, char *buff, unsigned char size)
 {
-    char tx[257];
-    char rx[257];
-    memset(tx, '\0', 257);
-    memset(rx, '\0', 257);
+    char tx[255];
+    char rx[255];
+    memset(tx, '\0', 255);
+    memset(rx, '\0', 255);
 
     tx[0] = (reg | 0x80);
     memcpy(&tx[1], buff, size);
