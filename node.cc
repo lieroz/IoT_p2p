@@ -11,6 +11,7 @@ void tx_f(txData *tx)
     printf("tx done;\t");
     printf("sent string: \"%s\"\n", tx->buf); //Data we've sent
 
+    std::memset(modem->rx.data.buf, '\0', 255);
     LoRa_receive(modem);
 }
 
@@ -51,8 +52,8 @@ void rx_f(rxData *rx)
         return;
     }
 
+    std::memset(modem->tx.data.buf, '\0', 255);
     std::memcpy(modem->tx.data.buf, data, len);
-    modem->tx.data.buf[len] = '\0';
     modem->tx.data.size = len;
 
     LoRa_send(modem);
