@@ -90,6 +90,8 @@ int main(int argc, const char *argv[])
     }
     else if (std::strcmp(argv[1], "sender") == 0)
     {
+        memcpy(modem.tx.data.buf, "Ping", 5);
+        modem.tx.data.size = 5;
         LoRa_send(&modem);
     }
     else
