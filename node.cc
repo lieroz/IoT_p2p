@@ -26,35 +26,33 @@ void rx_f(rxData *rx)
     printf("RSSI: %d;\t", rx->RSSI);
     printf("SNR: %f\n\n", rx->SNR);
 
-    const char *data;
+    const char* data;
+    std::size_t len = 0;
 
     if (std::strcmp(rx->buf, "syn") == 0)
     {
-        const char *data = "synack";
-        std::size_t len = std::strlen(data);
-        memcpy(modem->tx.data.buf, data, len);
-        modem->tx.data.size = len;
+        data = "synack";
+        len = std::strlen(data);
     }
     else if (std::strcmp(rx->buf, "synack") == 0)
     {
-        const char *data = "ack";
-        std::size_t len = std::strlen(data);
-        memcpy(modem->tx.data.buf, data, len);
-        modem->tx.data.size = len;
+        data = "ack";
+        len = std::strlen(data);
 
     }
     else if (std::strcmp(rx->buf, "ack") == 0)
     {
-        const char *data = "syn";
-        std::size_t len = std::strlen(data);
-        memcpy(modem->tx.data.buf, data, len);
-        modem->tx.data.size = len;
+        data = "syn";
+        len = std::strlen(data);
     }
     else
     {
         LoRa_sleep(modem);
         return;
     }
+
+    memcpy(modem->tx.data.buf, data, len);
+    modem->tx.data.size = len;
 
     LoRa_send(modem);
 
