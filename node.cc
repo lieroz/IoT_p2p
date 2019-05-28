@@ -43,7 +43,6 @@ void rx_f(rxData *rx)
     else if (std::strcmp(rx->buf, "ack") == 0)
     {
         data = "syn";
-        std::cout << "ACK RECEIVED" << std::endl;
         len = std::strlen(data);
     }
     else
@@ -53,6 +52,7 @@ void rx_f(rxData *rx)
     }
 
     std::memcpy(modem->tx.data.buf, data, len);
+    modem-tx.data.buf[len] = '\0';
     modem->tx.data.size = len;
 
     LoRa_send(modem);
