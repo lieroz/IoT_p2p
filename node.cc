@@ -100,6 +100,9 @@ int main(int argc, const char *argv[])
     char rxbuf[255];
     LoRa_ctl modem;
 
+    std::memset(txbuf, '\0', 255);
+    std::memset(rxbuf, '\0', 255);
+
     init(&modem, txbuf, rxbuf);
 
     if (LoRa_begin(&modem) != 0)
