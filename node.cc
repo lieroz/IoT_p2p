@@ -38,12 +38,12 @@ void rx_f(rxData *rx)
         {
             data = "synack";
             len = std::strlen(data);
-            connectionEstablished = true;
         }
         else if (std::strcmp(rx->buf, "synack") == 0)
         {
             data = "ack";
             len = std::strlen(data);
+            connectionEstablished = true;
         }
         else if (std::strcmp(rx->buf, "ack") == 0)
         {
