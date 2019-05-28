@@ -43,6 +43,7 @@ void rx_f(rxData *rx)
     else if (std::strcmp(rx->buf, "ack") == 0)
     {
         data = "syn";
+        std::cout << "ACK RECEIVED" << std::endl;
         len = std::strlen(data);
     }
     else
@@ -51,7 +52,6 @@ void rx_f(rxData *rx)
         return;
     }
 
-    std::memset(modem->tx.data.buf, '\0', 255);
     std::memcpy(modem->tx.data.buf, data, len);
     modem->tx.data.size = len;
 
