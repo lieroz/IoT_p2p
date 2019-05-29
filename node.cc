@@ -187,14 +187,19 @@ void rx_f(rxData *rx)
             b = generatePrimeNumber<16>();
             B = modpow(g, b, p);
 
-            std::size_t size = sizeof(unsigned long long);
-
-            std::memcpy(modem->tx.data.buf, (char *)&g, size);
-            std::memcpy(modem->tx.data.buf, (char *)&p, size);
-            std::memcpy(modem->tx.data.buf, (char *)&B, size);
+            std::cout << B << std::endl;
 
             data = "synack";
-            len = std::strlen(data) + 3 * size;
+            std::size_t size = sizeof(unsigned long long);
+            len = std::strlen(data);
+
+            std::memcpy(modem->tx.data.buf, data, len);
+            std::memcpy(modem->tx.data.buf + len, (char *)&g, size);
+            std::memcpy(modem->tx.data.buf + len + size, (char *)&p, size);
+            std::memcpy(modem->tx.data.buf + len + 2 * size, (char *)&B, size);
+
+            len += 3 * size;
+
         }
         else if (std::strncmp(rx->buf, "synack", 6) == 0)
         {
@@ -221,6 +226,7 @@ void rx_f(rxData *rx)
             data = "ack";
             len = std::strlen(data);
             connectionEstablished = true;
+            std::memcpy(modem->tx.data.buf, data, len);
         }
         else
         {
@@ -233,9 +239,9 @@ void rx_f(rxData *rx)
     {
         data = "making tunnel great again";
         len = std::strlen(data);
+        std::memcpy(modem->tx.data.buf, data, len);
     }
 
-    std::memcpy(modem->tx.data.buf, data, len);
     modem->tx.data.size = len;
 
     LoRa_send(modem);
@@ -308,15 +314,15 @@ int main(int argc, const char *argv[])
 
         std::cout << g << " " << p << " " << A << std::endl;
 
-        std::size_t size = sizeof(unsigned long long);
-
-        std::memcpy(modem.tx.data.buf, (char *)&g, size);
-        std::memcpy(modem.tx.data.buf, (char *)&p, size);
-        std::memcpy(modem.tx.data.buf, (char *)&A, size);
-
         const char *data = "syn";
         std::size_t len = std::strlen(data);
-        memcpy(modem.tx.data.buf, data, len);
+        std::size_t size = sizeof(unsigned long long);
+
+        std::memcpy(modem.tx.data.buf, data, len);
+        std::memcpy(modem.tx.data.buf + len, (char *)&g, size);
+        std::memcpy(modem.tx.data.buf + len + size, (char *)&p, size);
+        std::memcpy(modem.tx.data.buf + len + 2 * size, (char *)&A, size);
+
         modem.tx.data.size = len + 3 * size;
         LoRa_send(&modem);
     }
