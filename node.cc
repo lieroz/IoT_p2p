@@ -1,8 +1,130 @@
 #include <iostream>
 #include <cstring>
 #include <unistd.h>
+#include <cmath>
+#include <type_traits>
+#include <bitset>
+#include <random>
 
 #include <lora.h>
+
+template <typename T>
+T modpow(T base, T exp, T modulus)
+{
+    static_assert(std::is_integral<T>::value, "Only integer types can be used");
+
+    base %= modulus;
+    T result = 1;
+
+    while (exp > 0)
+    {
+        if (exp & 1)
+        {
+            result = (result * base) % modulus;
+        }
+
+        base = (base * base) % modulus;
+        exp >>= 1;
+    }
+
+    return result;
+}
+
+template <typename T>
+bool isPrime(T n, int k)
+{
+    static_assert(std::is_integral<T>::value, "Only integer types can be used");
+
+    std::random_device dev;
+    std::mt19937 rng(dev());
+    std::uniform_int_distribution<std::mt19937::result_type> dist(2, n - 1);
+
+    if (n == 2 || n == 3)
+    {
+        return true;
+    }
+
+    if (n <= 1 || n % 2 == 0)
+    {
+        return false;
+    }
+
+    T s = 0;
+    T r = n - 1;
+
+    while (r & 1 == 0)
+    {
+        ++s;
+        r /= 2;
+    }
+
+    for (int i = 0; i < k; ++i)
+    {
+        T a = dist(rng);
+        T x = modpow<T>(a, r, n);
+
+        if (x != 1 && x != n - 1)
+        {
+            T j = 1;
+
+            while (j < s && x != n - 1)
+            {
+                x = modpow<T>(x, 2, n);
+
+                if (x == 1)
+                {
+                    return false;
+                }
+
+                j += 1;
+            }
+
+            if (x != n - 1)
+            {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+template <std::size_t size>
+typename std::bitset<size> randomBitset(double p = 0.5)
+{
+    std::bitset<size> bits;
+    std::random_device dev;
+    std::mt19937 rng(dev());
+    std::bernoulli_distribution dist(p);
+
+    for (int i = 0; i < size; ++i)
+    {
+        bits[i] = dist(rng);
+    }
+
+    return bits;
+}
+
+template <std::size_t size>
+unsigned long long generatePrimeCandidate()
+{
+    std::bitset<size> p = randomBitset<size>();
+    p |= (static_cast<unsigned long long>(1) << size - 1) | 1;
+    return p.to_ullong();
+}
+
+template <std::size_t size>
+unsigned long long generatePrimeNumber()
+{
+    unsigned long long p = 4;
+
+    while (!isPrime(p, 8))
+    {
+        p = generatePrimeCandidate<size>();
+    }
+
+    return p;
+}
 
 bool connectionEstablished = false;
 
@@ -16,6 +138,17 @@ void tx_f(txData *tx)
     std::memset(modem->rx.data.buf, '\0', 255);
     LoRa_receive(modem);
 }
+
+unsigned long long g = 0;
+unsigned long long p = 0;
+
+unsigned long long a = 0;
+unsigned long long b = 0;
+
+unsigned long long A = 0;
+unsigned long long B = 0;
+
+unsigned long long key = 0;
 
 void rx_f(rxData *rx)
 {
@@ -31,21 +164,59 @@ void rx_f(rxData *rx)
 
     const char* data;
     std::size_t len = 0;
+    std::memset(modem->tx.data.buf, '\0', 255);
 
     if (!connectionEstablished)
     {
-        if (std::strcmp(rx->buf, "syn") == 0)
+        if (std::strncmp(rx->buf, "syn", 3) == 0)
         {
+            char _g[8];
+            char _p[8];
+            char _A[8];
+
+            std::memcpy(&rx->buf[3], _g, 8);
+            std::memcpy(&rx->buf[11], _p, 8);
+            std::memcpy(&rx->buf[19], _A, 8);
+
+            g = *(unsigned long long *)_g;
+            p = *(unsigned long long *)_p;
+            A = *(unsigned long long *)_A;
+
+            std::cout << g << " " << p << " " << A << std::endl;
+
+            b = generatePrimeNumber<16>();
+            B = modpow(g, b, p);
+
+            std::size_t size = sizeof(unsigned long long);
+
+            std::memcpy(modem->tx.data.buf, (char *)&g, size);
+            std::memcpy(modem->tx.data.buf, (char *)&p, size);
+            std::memcpy(modem->tx.data.buf, (char *)&B, size);
+
             data = "synack";
-            len = std::strlen(data);
+            len = std::strlen(data) + 3 * size;
         }
-        else if (std::strcmp(rx->buf, "synack") == 0)
+        else if (std::strncmp(rx->buf, "synack", 6) == 0)
         {
+            char _g[8];
+            char _p[8];
+            char _B[8];
+
+            std::memcpy(&rx->buf[6], _g, 8);
+            std::memcpy(&rx->buf[14], _p, 8);
+            std::memcpy(&rx->buf[22], _B, 8);
+
+            g = *(unsigned long long *)_g;
+            p = *(unsigned long long *)_p;
+            B = *(unsigned long long *)_B;
+
+            std::cout << g << " " << p << " " << B << std::endl;
+
             data = "ack";
-            len = std::strlen(data);
+            len = std::strlen(data) + 3;
             connectionEstablished = true;
         }
-        else if (std::strcmp(rx->buf, "ack") == 0)
+        else if (std::strncmp(rx->buf, "ack", 3) == 0)
         {
             data = "ack";
             len = std::strlen(data);
@@ -64,7 +235,6 @@ void rx_f(rxData *rx)
         len = std::strlen(data);
     }
 
-    std::memset(modem->tx.data.buf, '\0', 255);
     std::memcpy(modem->tx.data.buf, data, len);
     modem->tx.data.size = len;
 
@@ -83,8 +253,8 @@ void init(LoRa_ctl *modem, char *txbuf, char *rxbuf)
     modem->tx.data.buf = txbuf;
     modem->rx.callback = rx_f;
     modem->rx.data.buf = rxbuf;
-    modem->rx.data.userPtr = (void *)(modem); //To handle with chip from rx callback
-    modem->tx.data.userPtr = (void *)(modem); //To handle with chip from tx callback
+    modem->rx.data.userPtr = static_cast<void *>(modem); //To handle with chip from rx callback
+    modem->tx.data.userPtr = static_cast<void *>(modem); //To handle with chip from tx callback
     modem->eth.preambleLen = 6;
     modem->eth.bw = BW62_5; //Bandwidth 62.5KHz
     modem->eth.sf = SF12; //Spreading Factor 12
@@ -131,10 +301,23 @@ int main(int argc, const char *argv[])
     }
     else if (std::strcmp(argv[1], "sender") == 0)
     {
+        g = generatePrimeNumber<16>();
+        p = generatePrimeNumber<16>();
+        a = generatePrimeNumber<16>();
+        A = modpow(g, a, p);
+
+        std::cout << g << " " << p << " " << A << std::endl;
+
+        std::size_t size = sizeof(unsigned long long);
+
+        std::memcpy(modem.tx.data.buf, (char *)&g, size);
+        std::memcpy(modem.tx.data.buf, (char *)&p, size);
+        std::memcpy(modem.tx.data.buf, (char *)&A, size);
+
         const char *data = "syn";
         std::size_t len = std::strlen(data);
         memcpy(modem.tx.data.buf, data, len);
-        modem.tx.data.size = len;
+        modem.tx.data.size = len + 3 * size;
         LoRa_send(&modem);
     }
     else
