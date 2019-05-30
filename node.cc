@@ -152,6 +152,7 @@ unsigned long long B = 0;
 
 unsigned long long key = 0;
 uint8_t aesKey[32];
+struct AES_ctx ctx;
 
 void rx_f(rxData *rx)
 {
@@ -190,6 +191,8 @@ void rx_f(rxData *rx)
             std::memcpy(&aesKey[8], &key, 8);
             std::memcpy(&aesKey[16], &key, 8);
             std::memcpy(&aesKey[24], &key, 8);
+
+            AES_init_ctx_iv(&ctx, aesKey, &aesKey[16]);
         }
         else if (std::strncmp(rx->buf, "syn", 3) == 0)
         {
@@ -219,6 +222,8 @@ void rx_f(rxData *rx)
             std::memcpy(&aesKey[8], &key, 8);
             std::memcpy(&aesKey[16], &key, 8);
             std::memcpy(&aesKey[24], &key, 8);
+
+            AES_init_ctx_iv(&ctx, aesKey, &aesKey[16]);
         }
         else if (std::strncmp(rx->buf, "ack", 3) == 0)
         {
@@ -237,9 +242,6 @@ void rx_f(rxData *rx)
     }
     else
     {
-        struct AES_ctx ctx;
-        AES_init_ctx_iv(&ctx, aesKey, &aesKey[16]);
-
         if (std::strncmp(rx->buf, "ack", 3) != 0)
         {
             AES_CBC_decrypt_buffer(&ctx, (uint8_t *)rx->buf, 16);
