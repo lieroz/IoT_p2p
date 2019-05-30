@@ -1,12 +1,14 @@
 #include <iostream>
 #include <cstring>
-#include <unistd.h>
 #include <cmath>
 #include <type_traits>
 #include <bitset>
 #include <random>
 
+#include <unistd.h>
+
 #include <lora.h>
+#include <aes.h>
 
 template <typename T>
 T modpow(T base, T exp, T modulus)
@@ -149,6 +151,7 @@ unsigned long long A = 0;
 unsigned long long B = 0;
 
 unsigned long long key = 0;
+uint8_t aesKey[32];
 
 void rx_f(rxData *rx)
 {
@@ -158,7 +161,7 @@ void rx_f(rxData *rx)
     printf("rx done;\t");
     printf("CRC error: %d;\t", rx->CRC);
     printf("Data size: %d;\t", rx->size);
-    printf("received string: \"%s\";\t", rx->buf); //Data we've received
+    printf("received string: \"%s\";\t", rx->buf);
     printf("RSSI: %d;\t", rx->RSSI);
     printf("SNR: %f\n\n", rx->SNR);
 
@@ -177,10 +180,15 @@ void rx_f(rxData *rx)
             data = "ack";
             len = std::strlen(data);
             connectionEstablished = true;
+
             std::memcpy(modem->tx.data.buf, data, len);
 
-            key = modpow(B, a, p);
-            std::cout << "KEY: " << key << std::endl;
+            key = modpow(B, a, p) << 47;
+
+            std::memcpy(aesKey, &key, 8);
+            std::memcpy(&aesKey[8], &key, 8);
+            std::memcpy(&aesKey[16], &key, 8);
+            std::memcpy(&aesKey[24], &key, 8);
         }
         else if (std::strncmp(rx->buf, "syn", 3) == 0)
         {
@@ -196,21 +204,26 @@ void rx_f(rxData *rx)
             std::size_t size = sizeof(unsigned long long);
 
             std::memcpy(modem->tx.data.buf, data, len);
-            std::memcpy(&modem->tx.data.buf[len], (char *)&g, size);
+            std::memcpy(&modem->tx.data.buf[len], &g, size);
             len += size;
-            std::memcpy(&modem->tx.data.buf[len], (char *)&p, size);
+            std::memcpy(&modem->tx.data.buf[len], &p, size);
             len += size;
-            std::memcpy(&modem->tx.data.buf[len], (char *)&B, size);
+            std::memcpy(&modem->tx.data.buf[len], &B, size);
             len += size;
 
-            key = modpow(A, b, p);
-            std::cout << "KEY: " << key << std::endl;
+            key = modpow(A, b, p) << 41;
+
+            std::memcpy(aesKey, &key, 8);
+            std::memcpy(&aesKey[8], &key, 8);
+            std::memcpy(&aesKey[16], &key, 8);
+            std::memcpy(&aesKey[24], &key, 8);
         }
         else if (std::strncmp(rx->buf, "ack", 3) == 0)
         {
             data = "ack";
             len = std::strlen(data);
             connectionEstablished = true;
+
             std::memcpy(modem->tx.data.buf, data, len);
         }
         else
@@ -222,9 +235,17 @@ void rx_f(rxData *rx)
     }
     else
     {
-        data = "making tunnel great again";
-        len = std::strlen(data);
-        std::memcpy(modem->tx.data.buf, data, len);
+        struct AES_ctx ctx;
+        AES_init_ctx_iv(&ctx, aesKey, &aesKey[16]);
+
+        AES_CBC_decrypt_buffer(&ctx, (uint8_t *)rx->buf, rx->size);
+        std::cout << rx->buf << std::endl;
+
+        char plainData[] = "some random data here";
+        AES_CBC_encrypt_buffer(&ctx, (uint8_t *)plainData, std::strlen(plainData));
+
+        len = std::strlen(plainData);
+        std::memcpy(modem->tx.data.buf, plainData, len);
     }
 
     modem->tx.data.size = len;
@@ -301,11 +322,11 @@ int main(int argc, const char *argv[])
         std::size_t size = sizeof(unsigned long long);
 
         std::memcpy(modem.tx.data.buf, data, len);
-        std::memcpy(&modem.tx.data.buf[len], (char *)&g, size);
+        std::memcpy(&modem.tx.data.buf[len], &g, size);
         len += size;
-        std::memcpy(&modem.tx.data.buf[len], (char *)&p, size);
+        std::memcpy(&modem.tx.data.buf[len], &p, size);
         len += size;
-        std::memcpy(&modem.tx.data.buf[len], (char *)&A, size);
+        std::memcpy(&modem.tx.data.buf[len], &A, size);
         len += size;
 
         modem.tx.data.size = len;
