@@ -183,7 +183,8 @@ void rx_f(rxData *rx)
 
             std::memcpy(modem->tx.data.buf, data, len);
 
-            key = modpow(B, a, p) << 41;
+            key = modpow(B, a, p);
+            key <<= 41;
 
             std::memcpy(aesKey, &key, 8);
             std::memcpy(&aesKey[8], &key, 8);
@@ -211,7 +212,8 @@ void rx_f(rxData *rx)
             std::memcpy(&modem->tx.data.buf[len], &B, size);
             len += size;
 
-            key = modpow(A, b, p) << 41;
+            key = modpow(A, b, p);
+            key <<= 41;
 
             std::memcpy(aesKey, &key, 8);
             std::memcpy(&aesKey[8], &key, 8);
