@@ -242,12 +242,12 @@ void rx_f(rxData *rx)
 
         if (std::strncmp(rx->buf, "ack", 3) != 0)
         {
-            AES_CBC_decrypt_buffer(&ctx, (uint8_t *)rx->buf, rx->size);
+            AES_CBC_decrypt_buffer(&ctx, (uint8_t *)rx->buf, 16);
             std::cout << "DECRYPT: " << rx->buf << std::endl;
         }
 
-        char plainData[] = "some random data here";
-        AES_CBC_encrypt_buffer(&ctx, (uint8_t *)plainData, std::strlen(plainData));
+        char plainData[] = "some random data";
+        AES_CBC_encrypt_buffer(&ctx, (uint8_t *)plainData, 16);
         std::cout << "ENCRYPT: " << plainData << std::endl;
 
         len = std::strlen(plainData);
