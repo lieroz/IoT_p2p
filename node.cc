@@ -245,6 +245,7 @@ void rx_f(rxData *rx)
 
         char plainData[] = "some random data here";
         AES_CBC_encrypt_buffer(&ctx, (uint8_t *)plainData, std::strlen(plainData));
+        std::cout << "ENCRYPT: " << plainData << std::endl;
 
         len = std::strlen(plainData);
         std::memcpy(modem->tx.data.buf, plainData, len);
