@@ -174,12 +174,13 @@ void rx_f(rxData *rx)
             std::memcpy(&p, &rx->buf[14], 8);
             std::memcpy(&B, &rx->buf[22], 8);
 
-            std::cout << g << " " << p << " " << B << std::endl;
-
             data = "ack";
             len = std::strlen(data);
             connectionEstablished = true;
             std::memcpy(modem->tx.data.buf, data, len);
+
+            key = modpow(B, a, p);
+            std::cout << "KEY: " << key << std::endl;
         }
         else if (std::strncmp(rx->buf, "syn", 3) == 0)
         {
@@ -187,13 +188,8 @@ void rx_f(rxData *rx)
             std::memcpy(&p, &rx->buf[11], 8);
             std::memcpy(&A, &rx->buf[19], 8);
 
-            std::cout << g << " " << p << " " << A << std::endl;
-
             b = generatePrimeNumber<16>();
             B = modpow(g, b, p);
-
-            std::cout << B << std::endl;
-            std::cout << b << std::endl;
 
             data = "synack";
             len = std::strlen(data);
@@ -206,6 +202,9 @@ void rx_f(rxData *rx)
             len += size;
             std::memcpy(&modem->tx.data.buf[len], (char *)&B, size);
             len += size;
+
+            key = modpow(A, b, p);
+            std::cout << "KEY: " << key << std::endl;
         }
         else if (std::strncmp(rx->buf, "ack", 3) == 0)
         {
@@ -296,9 +295,6 @@ int main(int argc, const char *argv[])
         p = generatePrimeNumber<16>();
         a = generatePrimeNumber<16>();
         A = modpow(g, a, p);
-
-        std::cout << g << " " << p << " " << A << std::endl;
-        std::cout << a << std::endl;
 
         const char *data = "syn";
         std::size_t len = std::strlen(data);
