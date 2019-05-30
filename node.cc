@@ -168,7 +168,19 @@ void rx_f(rxData *rx)
 
     if (!connectionEstablished)
     {
-        if (std::strncmp(rx->buf, "syn", 3) == 0)
+        if (std::strncmp(rx->buf, "synack", 6) == 0)
+        {
+            std::memcpy(&g, &rx->buf[6], 8);
+            std::memcpy(&p, &rx->buf[14], 8);
+            std::memcpy(&B, &rx->buf[22], 8);
+
+            std::cout << g << " " << p << " " << B << std::endl;
+
+            data = "ack";
+            len = std::strlen(data);
+            connectionEstablished = true;
+        }
+        else if (std::strncmp(rx->buf, "syn", 3) == 0)
         {
             std::memcpy(&g, &rx->buf[3], 8);
             std::memcpy(&p, &rx->buf[11], 8);
@@ -182,8 +194,8 @@ void rx_f(rxData *rx)
             std::cout << B << std::endl;
 
             data = "synack";
-            std::size_t size = sizeof(unsigned long long);
             len = std::strlen(data);
+            std::size_t size = sizeof(unsigned long long);
 
             std::memcpy(modem->tx.data.buf, data, len);
             std::memcpy(&modem->tx.data.buf[len], (char *)&g, size);
@@ -192,18 +204,6 @@ void rx_f(rxData *rx)
             len += size;
             std::memcpy(&modem->tx.data.buf[len], (char *)&B, size);
             len += size;
-        }
-        else if (std::strncmp(rx->buf, "synack", 6) == 0)
-        {
-            std::memcpy(&g, &rx->buf[6], 8);
-            std::memcpy(&p, &rx->buf[14], 8);
-            std::memcpy(&B, &rx->buf[22], 8);
-
-            std::cout << g << " " << p << " " << B << std::endl;
-
-            data = "ack";
-            len = std::strlen(data);
-            connectionEstablished = true;
         }
         else if (std::strncmp(rx->buf, "ack", 3) == 0)
         {
