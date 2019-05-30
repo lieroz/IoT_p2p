@@ -240,8 +240,11 @@ void rx_f(rxData *rx)
         struct AES_ctx ctx;
         AES_init_ctx_iv(&ctx, aesKey, &aesKey[16]);
 
-        AES_CBC_decrypt_buffer(&ctx, (uint8_t *)rx->buf, rx->size);
-        std::cout << "DECRYPT: " << rx->buf << std::endl;
+        if (std::strncmp(rx->buf, "ack", 3) != 0)
+        {
+            AES_CBC_decrypt_buffer(&ctx, (uint8_t *)rx->buf, rx->size);
+            std::cout << "DECRYPT: " << rx->buf << std::endl;
+        }
 
         char plainData[] = "some random data here";
         AES_CBC_encrypt_buffer(&ctx, (uint8_t *)plainData, std::strlen(plainData));
