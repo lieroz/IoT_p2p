@@ -179,6 +179,7 @@ void rx_f(rxData *rx)
             data = "ack";
             len = std::strlen(data);
             connectionEstablished = true;
+            std::memcpy(modem->tx.data.buf, data, len);
         }
         else if (std::strncmp(rx->buf, "syn", 3) == 0)
         {
@@ -227,7 +228,6 @@ void rx_f(rxData *rx)
     }
 
     modem->tx.data.size = len;
-
     LoRa_send(modem);
 
     printf("Time on air data - Tsym: %f;\t", modem->tx.data.Tsym);
