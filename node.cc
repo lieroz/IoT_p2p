@@ -193,6 +193,7 @@ void rx_f(rxData *rx)
             B = modpow(g, b, p);
 
             std::cout << B << std::endl;
+            std::cout << b << std::endl;
 
             data = "synack";
             len = std::strlen(data);
@@ -297,6 +298,7 @@ int main(int argc, const char *argv[])
         A = modpow(g, a, p);
 
         std::cout << g << " " << p << " " << A << std::endl;
+        std::cout << a << std::endl;
 
         const char *data = "syn";
         std::size_t len = std::strlen(data);
