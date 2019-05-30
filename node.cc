@@ -183,7 +183,7 @@ void rx_f(rxData *rx)
 
             std::memcpy(modem->tx.data.buf, data, len);
 
-            key = modpow(B, a, p) << 47;
+            key = modpow(B, a, p) << 41;
 
             std::memcpy(aesKey, &key, 8);
             std::memcpy(&aesKey[8], &key, 8);
@@ -239,7 +239,7 @@ void rx_f(rxData *rx)
         AES_init_ctx_iv(&ctx, aesKey, &aesKey[16]);
 
         AES_CBC_decrypt_buffer(&ctx, (uint8_t *)rx->buf, rx->size);
-        std::cout << rx->buf << std::endl;
+        std::cout << "DECRYPT: " << rx->buf << std::endl;
 
         char plainData[] = "some random data here";
         AES_CBC_encrypt_buffer(&ctx, (uint8_t *)plainData, std::strlen(plainData));
