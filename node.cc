@@ -170,17 +170,9 @@ void rx_f(rxData *rx)
     {
         if (std::strncmp(rx->buf, "syn", 3) == 0)
         {
-            char _g[8];
-            char _p[8];
-            char _A[8];
-
-            std::memcpy(&rx->buf[3], _g, 8);
-            std::memcpy(&rx->buf[11], _p, 8);
-            std::memcpy(&rx->buf[19], _A, 8);
-
-            g = *(unsigned long long *)_g;
-            p = *(unsigned long long *)_p;
-            A = *(unsigned long long *)_A;
+            std::memcpy(&g, &rx->buf[3], 8);
+            std::memcpy(&p, &rx->buf[11], 8);
+            std::memcpy(&A, &rx->buf[19], 8);
 
             std::cout << g << " " << p << " " << A << std::endl;
 
@@ -194,31 +186,23 @@ void rx_f(rxData *rx)
             len = std::strlen(data);
 
             std::memcpy(modem->tx.data.buf, data, len);
-            std::memcpy(modem->tx.data.buf + len, (char *)&g, size);
-            std::memcpy(modem->tx.data.buf + len + size, (char *)&p, size);
-            std::memcpy(modem->tx.data.buf + len + 2 * size, (char *)&B, size);
-
-            len += 3 * size;
-
+            std::memcpy(&modem->tx.data.buf[len], (char *)&g, size);
+            len += size;
+            std::memcpy(&modem->tx.data.buf[len], (char *)&p, size);
+            len += size;
+            std::memcpy(&modem->tx.data.buf[len], (char *)&B, size);
+            len += size;
         }
         else if (std::strncmp(rx->buf, "synack", 6) == 0)
         {
-            char _g[8];
-            char _p[8];
-            char _B[8];
-
-            std::memcpy(&rx->buf[6], _g, 8);
-            std::memcpy(&rx->buf[14], _p, 8);
-            std::memcpy(&rx->buf[22], _B, 8);
-
-            g = *(unsigned long long *)_g;
-            p = *(unsigned long long *)_p;
-            B = *(unsigned long long *)_B;
+            std::memcpy(&g, &rx->buf[6], 8);
+            std::memcpy(&p, &rx->buf[14], 8);
+            std::memcpy(&B, &rx->buf[22], 8);
 
             std::cout << g << " " << p << " " << B << std::endl;
 
             data = "ack";
-            len = std::strlen(data) + 3;
+            len = std::strlen(data);
             connectionEstablished = true;
         }
         else if (std::strncmp(rx->buf, "ack", 3) == 0)
@@ -319,11 +303,14 @@ int main(int argc, const char *argv[])
         std::size_t size = sizeof(unsigned long long);
 
         std::memcpy(modem.tx.data.buf, data, len);
-        std::memcpy(modem.tx.data.buf + len, (char *)&g, size);
-        std::memcpy(modem.tx.data.buf + len + size, (char *)&p, size);
-        std::memcpy(modem.tx.data.buf + len + 2 * size, (char *)&A, size);
+        std::memcpy(&modem.tx.data.buf[len], (char *)&g, size);
+        len += size;
+        std::memcpy(&modem.tx.data.buf[len], (char *)&p, size);
+        len += size;
+        std::memcpy(&modem.tx.data.buf[len], (char *)&A, size);
+        len += size;
 
-        modem.tx.data.size = len + 3 * size;
+        modem.tx.data.size = len;
         LoRa_send(&modem);
     }
     else
