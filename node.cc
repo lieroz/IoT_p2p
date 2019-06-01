@@ -4,13 +4,13 @@
 #include <type_traits>
 #include <bitset>
 #include <random>
-#include <functional>
 
 #include <unistd.h>
 
 #include <lora.h>
 #include <aes.h>
 #include <rsa.h>
+#include <sha256.h>
 
 template <typename T>
 T modpow(T base, T exp, T modulus)
@@ -156,15 +156,29 @@ unsigned long long key = 0;
 uint8_t aesKey[32];
 struct AES_ctx ctx;
 
-std::size_t RSA_sign(const char *data, std::size_t e, std::size_t n)
+std::string RSA_sign(const std::string &data, std::size_t e, std::size_t n)
 {
-    std::size_t hash = std::hash<std::string>()(data);
-    return rsa::encrypt(hash, e, n);
+    std::string hash = sha256(data);
+    std::string result;
+
+    for (auto &i : hash)
+    {
+        result.push_back(rsa::encrypt(i, e, n));
+    }
+
+    return result;
 }
 
-bool RSA_check(const char *data, std::size_t hash, std::size_t d, std::size_t n)
+bool RSA_check(const std::string &hash, const std::string &data, std::size_t d, std::size_t n)
 {
-    return rsa::decrypt(hash, d, n) == std::hash<std::string>()(data);
+    std::string result;
+
+    for (auto &i : hash)
+    {
+        result.push_back(rsa::decrypt(i, d, n));
+    }
+
+    return result == data;
 }
 
 std::size_t RSA_p = 0;
@@ -220,6 +234,23 @@ void rx_f(rxData *rx)
         {
             std::memcpy(&B, &rx->buf[19], 8);
             key = modpow(B, a, p);
+
+            char msg[128];
+            std::memset(msg, '\0', 128);
+            std::memcpy(msg, "sign", 4);
+
+            std::string plainData = "some random data to sign AZAZAZAZA";
+            std::string hash = sha256(plainData);
+            std::cout << "HASH SIZE: " << hash.size() << std::endl;
+
+            std::memcpy(&msg[64], hash.c_str(), 64);
+            std::cout << "BEFORE ENCRYPT: " << msg << std::endl;
+
+            AES_CBC_encrypt_buffer(&ctx, (uint8_t *)msg, 128);
+            std::cout << "AFTER ENCRYPT: " << msg << std::endl;
+
+            std::memcpy(modem->tx.data.buf, msg, 128);
+            len = 128;
         }
         else
         {
@@ -229,7 +260,6 @@ void rx_f(rxData *rx)
         }
 
         key <<= 41;
-        std::cout << "KEY: " << key << std::endl;
 
         std::memcpy(aesKey, &key, 8);
         std::memcpy(&aesKey[8], &key, 8);
@@ -238,21 +268,61 @@ void rx_f(rxData *rx)
 
         AES_init_ctx_iv(&ctx, aesKey, &aesKey[16]);
     }
-
-    if (connectionEstablished && std::strncmp(rx->buf, "syn", 3) != 0)
+    else
     {
-        if (std::strncmp(rx->buf, "ack", 3) != 0)
+        AES_CBC_decrypt_buffer(&ctx, (uint8_t *)rx->buf, 128);
+        std::cout << "DECRYPT: " << rx->buf << std::endl;
+
+        if (std::strncmp(rx->buf, "sign", 4) == 0)
         {
-            AES_CBC_decrypt_buffer(&ctx, (uint8_t *)rx->buf, 16);
-            std::cout << "DECRYPT: " << rx->buf << std::endl;
+            std::string sign = RSA_sign(std::string(&rx->buf[64], 64), RSA_e, RSA_n);
+
+            char msg[128];
+            std::memset(msg, '\0', 128);
+            std::memcpy(msg, "check", 5);
+
+            std::memcpy(&msg[64], sign.c_str(), 64);
+            std::cout << "BEFORE ENCRYPT: " << msg << std::endl;
+
+            AES_CBC_encrypt_buffer(&ctx, (uint8_t *)msg, 128);
+            std::cout << "AFTER ENCRYPT: " << msg << std::endl;
+
+            std::memcpy(modem->tx.data.buf, msg, 128);
+            len = 128;
         }
+        else if (std::strncmp(rx->buf, "check", 5) == 0)
+        {
+            std::string plainData = "some random data to sign AZAZAZAZA";
+            std::string hash = sha256(plainData);
 
-        char plainData[] = "some random data";
-        AES_CBC_encrypt_buffer(&ctx, (uint8_t *)plainData, 16);
-        std::cout << "ENCRYPT: " << plainData << std::endl;
+            if (RSA_check(std::string(&rx->buf[64], 64), hash, RSA_d, RSA_n))
+            {
+                std::cout << "YEAH BOY" << std::endl;
+            }
+            else
+            {
+                std::cout << "BAD BOY" << std::endl;
+            }
 
-        len = std::strlen(plainData);
-        std::memcpy(modem->tx.data.buf, plainData, len);
+            char msg[128];
+            std::memset(msg, '\0', 128);
+            std::memcpy(msg, "sign", 4);
+
+            std::memcpy(&msg[64], hash.c_str(), 64);
+            std::cout << "BEFORE ENCRYPT: " << msg << std::endl;
+
+            AES_CBC_encrypt_buffer(&ctx, (uint8_t *)msg, 128);
+            std::cout << "AFTER ENCRYPT: " << msg << std::endl;
+
+            std::memcpy(modem->tx.data.buf, msg, 128);
+            len = 128;
+        }
+        else
+        {
+            std::cerr << "Unknown command" << std::endl;
+            LoRa_sleep(modem);
+            return;
+        }
     }
 
     modem->tx.data.size = len;
