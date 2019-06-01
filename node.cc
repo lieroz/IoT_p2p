@@ -220,6 +220,8 @@ void rx_f(rxData *rx)
             key = modpow(A, b, p);
             key <<= 41;
 
+            std::cout << "KEY: " << key << std::endl;
+
             std::memcpy(aesKey, &key, 8);
             std::memcpy(&aesKey[8], &key, 8);
             std::memcpy(&aesKey[16], &key, 8);
@@ -245,6 +247,8 @@ void rx_f(rxData *rx)
 
             key = modpow(B, a, p);
             key <<= 41;
+
+            std::cout << "KEY: " << key << std::endl;
 
             std::memcpy(aesKey, &key, 8);
             std::memcpy(&aesKey[8], &key, 8);
