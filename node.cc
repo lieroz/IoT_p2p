@@ -4,11 +4,13 @@
 #include <type_traits>
 #include <bitset>
 #include <random>
+#include <functional>
 
 #include <unistd.h>
 
 #include <lora.h>
 #include <aes.h>
+#include <rsa.h>
 
 template <typename T>
 T modpow(T base, T exp, T modulus)
@@ -154,6 +156,23 @@ unsigned long long key = 0;
 uint8_t aesKey[32];
 struct AES_ctx ctx;
 
+std::size_t RSA_sign(const char *data, std::size_t e, std::size_t n)
+{
+    std::size_t hash = std::hash<std::string>()(data);
+    return rsa::encrypt(hash, e, n);
+}
+
+bool RSA_check(const char *data, std::size_t hash, std::size_t d, std::size_t n)
+{
+    return rsa::decrypt(hash, d, n) == std::hash<std::string>()(data);
+}
+
+std::size_t RSA_p = 0;
+std::size_t RSA_q = 0;
+std::size_t RSA_n = 0;
+std::size_t RSA_e = 0;
+std::size_t RSA_d = 0;
+
 void rx_f(rxData *rx)
 {
     LoRa_ctl *modem = (LoRa_ctl *)(rx->userPtr);
@@ -172,38 +191,20 @@ void rx_f(rxData *rx)
 
     if (!connectionEstablished)
     {
-        if (std::strncmp(rx->buf, "synack", 6) == 0)
+        connectionEstablished = true;
+
+        std::memcpy(&g, &rx->buf[3], 8);
+        std::memcpy(&p, &rx->buf[11], 8);
+
+        if (std::strncmp(rx->buf, "syn", 3) == 0)
         {
-            std::memcpy(&g, &rx->buf[6], 8);
-            std::memcpy(&p, &rx->buf[14], 8);
-            std::memcpy(&B, &rx->buf[22], 8);
-
-            data = "ack";
-            len = std::strlen(data);
-            connectionEstablished = true;
-
-            std::memcpy(modem->tx.data.buf, data, len);
-
-            key = modpow(B, a, p);
-            key <<= 41;
-
-            std::memcpy(aesKey, &key, 8);
-            std::memcpy(&aesKey[8], &key, 8);
-            std::memcpy(&aesKey[16], &key, 8);
-            std::memcpy(&aesKey[24], &key, 8);
-
-            AES_init_ctx_iv(&ctx, aesKey, &aesKey[16]);
-        }
-        else if (std::strncmp(rx->buf, "syn", 3) == 0)
-        {
-            std::memcpy(&g, &rx->buf[3], 8);
-            std::memcpy(&p, &rx->buf[11], 8);
             std::memcpy(&A, &rx->buf[19], 8);
+            key = modpow(A, b, p);
 
             b = generatePrimeNumber<16>();
             B = modpow(g, b, p);
 
-            data = "synack";
+            data = "ack";
             len = std::strlen(data);
             std::size_t size = sizeof(unsigned long long);
 
@@ -214,24 +215,11 @@ void rx_f(rxData *rx)
             len += size;
             std::memcpy(&modem->tx.data.buf[len], &B, size);
             len += size;
-
-            key = modpow(A, b, p);
-            key <<= 41;
-
-            std::memcpy(aesKey, &key, 8);
-            std::memcpy(&aesKey[8], &key, 8);
-            std::memcpy(&aesKey[16], &key, 8);
-            std::memcpy(&aesKey[24], &key, 8);
-
-            AES_init_ctx_iv(&ctx, aesKey, &aesKey[16]);
         }
         else if (std::strncmp(rx->buf, "ack", 3) == 0)
         {
-            data = "ack";
-            len = std::strlen(data);
-            connectionEstablished = true;
-
-            std::memcpy(modem->tx.data.buf, data, len);
+            std::memcpy(&B, &rx->buf[19], 8);
+            key = modpow(B, a, p);
         }
         else
         {
@@ -239,8 +227,18 @@ void rx_f(rxData *rx)
             LoRa_sleep(modem);
             return;
         }
+
+        key <<= 41;
+
+        std::memcpy(aesKey, &key, 8);
+        std::memcpy(&aesKey[8], &key, 8);
+        std::memcpy(&aesKey[16], &key, 8);
+        std::memcpy(&aesKey[24], &key, 8);
+
+        AES_init_ctx_iv(&ctx, aesKey, &aesKey[16]);
     }
-    else
+
+    if (connectionEstablished)
     {
         if (std::strncmp(rx->buf, "ack", 3) != 0)
         {
@@ -298,6 +296,13 @@ int main(int argc, const char *argv[])
         std::cerr << "Plz specify sender or receiver" << std::endl;
         return 1;
     }
+
+    RSA_p = generatePrimeNumber<8>();
+    RSA_q = generatePrimeNumber<8>();
+    RSA_n = RSA_p * RSA_q;
+    std::size_t t = (RSA_p - 1) * (RSA_q - 1);
+    RSA_e = rsa::calculateE(t);
+    RSA_d = rsa::calculateD(RSA_e, t);
 
     char txbuf[255];
     char rxbuf[255];

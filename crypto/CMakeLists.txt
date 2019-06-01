@@ -1,5 +1,5 @@
-cmake_minimum_required(VERSION 2.8.12)
-project(tinyaes C ASM)
+cmake_minimum_required(VERSION 3.7)
+project(crypto)
 
 file(GLOB SOURCES *.cc)
 
