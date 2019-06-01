@@ -199,10 +199,10 @@ void rx_f(rxData *rx)
         if (std::strncmp(rx->buf, "syn", 3) == 0)
         {
             std::memcpy(&A, &rx->buf[19], 8);
-            key = modpow(A, b, p);
 
             b = generatePrimeNumber<16>();
             B = modpow(g, b, p);
+            key = modpow(A, b, p);
 
             data = "ack";
             len = std::strlen(data);
