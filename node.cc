@@ -238,7 +238,7 @@ void rx_f(rxData *rx)
         AES_init_ctx_iv(&ctx, aesKey, &aesKey[16]);
     }
 
-    if (connectionEstablished)
+    if (connectionEstablished && std::strncmp(rx->buf, "syn", 3) != 0)
     {
         if (std::strncmp(rx->buf, "ack", 3) != 0)
         {
