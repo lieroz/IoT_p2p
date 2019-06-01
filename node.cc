@@ -216,7 +216,16 @@ void rx_f(rxData *rx)
 
             b = generatePrimeNumber<16>();
             B = modpow(g, b, p);
+
             key = modpow(A, b, p);
+            key <<= 41;
+
+            std::memcpy(aesKey, &key, 8);
+            std::memcpy(&aesKey[8], &key, 8);
+            std::memcpy(&aesKey[16], &key, 8);
+            std::memcpy(&aesKey[24], &key, 8);
+
+            AES_init_ctx_iv(&ctx, aesKey, &aesKey[16]);
 
             data = "ack";
             len = std::strlen(data);
@@ -233,7 +242,16 @@ void rx_f(rxData *rx)
         else if (std::strncmp(rx->buf, "ack", 3) == 0)
         {
             std::memcpy(&B, &rx->buf[19], 8);
+
             key = modpow(B, a, p);
+            key <<= 41;
+
+            std::memcpy(aesKey, &key, 8);
+            std::memcpy(&aesKey[8], &key, 8);
+            std::memcpy(&aesKey[16], &key, 8);
+            std::memcpy(&aesKey[24], &key, 8);
+
+            AES_init_ctx_iv(&ctx, aesKey, &aesKey[16]);
 
             char msg[128];
             std::memset(msg, '\0', 128);
@@ -241,13 +259,9 @@ void rx_f(rxData *rx)
 
             std::string plainData = "some random data to sign AZAZAZAZA";
             std::string hash = sha256(plainData);
-            std::cout << "HASH SIZE: " << hash.size() << std::endl;
 
             std::memcpy(&msg[64], hash.c_str(), 64);
-            std::cout << "BEFORE ENCRYPT: " << msg << std::endl;
-
             AES_CBC_encrypt_buffer(&ctx, (uint8_t *)msg, 128);
-            std::cout << "AFTER ENCRYPT: " << msg << std::endl;
 
             std::memcpy(modem->tx.data.buf, msg, 128);
             len = 128;
@@ -258,15 +272,6 @@ void rx_f(rxData *rx)
             LoRa_sleep(modem);
             return;
         }
-
-        key <<= 41;
-
-        std::memcpy(aesKey, &key, 8);
-        std::memcpy(&aesKey[8], &key, 8);
-        std::memcpy(&aesKey[16], &key, 8);
-        std::memcpy(&aesKey[24], &key, 8);
-
-        AES_init_ctx_iv(&ctx, aesKey, &aesKey[16]);
     }
     else
     {
