@@ -2,6 +2,11 @@
 
 int main(int argc, const char *argv[])
 {
-    Node(5000).start();
+    if (argc < 2)
+    {
+        return 1;
+    }
+
+    Node(5000).start(argv[1]);
     return 0;
 }

@@ -8,7 +8,7 @@ class Node
 public:
     Node(std::size_t _timeout);
 
-    void start();
+    void start(const std::string &mode);
 
 private:
     void init(LoRa_ctl *modem, char *txbuf, char *rxbuf);

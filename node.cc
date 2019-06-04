@@ -5,12 +5,9 @@
 #include <thread>
 #include <cstring>
 #include <iostream>
-#include <chrono>
 
 namespace
 {
-std::chrono::time_point<std::chrono::high_resolution_clock> timePoint;
-
 void txCallback(txData *tx)
 {
     std::cout << "tx done;\tsent string: " << tx->buf << std::endl;
@@ -22,8 +19,6 @@ void txCallback(txData *tx)
 
 void rxCallback(rxData *rx)
 {
-    timePoint = std::chrono::high_resolution_clock::now();
-
     LoRa_ctl *modem = (LoRa_ctl *)(rx->userPtr);
     LoRa_stop_receive(modem);
 
@@ -73,7 +68,7 @@ void Node::init(LoRa_ctl *modem, char *txbuf, char *rxbuf)
     modem->eth.syncWord = 0x12;
 }
 
-void Node::start()
+void Node::start(const std::string &mode)
 {
     LoRa_ctl modem;
     char txbuf[loraBufSize];
@@ -89,23 +84,25 @@ void Node::start()
         throw std::runtime_error("Error configuring LoRa");
     }
 
-    timePoint = std::chrono::high_resolution_clock::now();
-    auto now = timePoint + std::chrono::milliseconds(timeout);
+    if (mode == "sender")
+    {
+        std::memset(modem.tx.data.buf, '\0', loraBufSize);
+        std::memcpy(modem.tx.data.buf, "ping", 4);
+        modem.tx.data.size = 4;
+
+        LoRa_send(&modem);
+    }
+    else if (mode == "receiver")
+    {
+        LoRa_receive(&modem);
+    }
+    else
+    {
+        throw std::runtime_error("Unsupported node mode");
+    }
 
     do
     {
-        if (std::chrono::duration_cast<std::chrono::milliseconds>(
-                    now - timePoint).count() >= timeout)
-        {
-            std::memset(modem.tx.data.buf, '\0', loraBufSize);
-            std::memcpy(modem.tx.data.buf, "ping", 4);
-            modem.tx.data.size = 4;
-
-            LoRa_send(&modem);
-            timePoint = std::chrono::high_resolution_clock::now();
-        }
-
-        now = std::chrono::high_resolution_clock::now();
         std::this_thread::yield();
     } while (LoRa_get_op_mode(&modem) != SLEEP_MODE);
 
