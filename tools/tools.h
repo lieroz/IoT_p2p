@@ -5,7 +5,6 @@
 #include <type_traits>
 #include <bitset>
 #include <random>
-#include <stdexcept>
 
 namespace tools
 {
@@ -16,16 +15,16 @@ struct KeyPairHex
   std::string privateKey;
 };
 
-KeyPairHex RsaGenerateHexKeyPair(unsigned int aKeySize);
+KeyPairHex rsaGenerateHexKeyPair(unsigned int aKeySize);
 
-std::string RsaSignString(const std::string &aPrivateKeyStrHex,
+std::string rsaSignString(const std::string &aPrivateKeyStrHex,
         const std::string &aMessage);
 
-bool RsaVerifyString(const std::string &aPublicKeyStrHex,
+bool rsaVerifyString(const std::string &aPublicKeyStrHex,
         const std::string &aMessage,
         const std::string &aSignatureStrHex);
 
-std::string Sha256(const std::string &input);
+std::string sha256(const std::string &input);
 
 template <typename T>
 T modpow(T base, T exp, T modulus)

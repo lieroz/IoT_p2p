@@ -12,7 +12,7 @@ namespace tools
 using Signer = CryptoPP::RSASS<CryptoPP::PSSR, CryptoPP::Whirlpool>::Signer;
 using Verifier = CryptoPP::RSASS<CryptoPP::PSSR, CryptoPP::Whirlpool>::Verifier;
 
-KeyPairHex RsaGenerateHexKeyPair(unsigned int aKeySize)
+KeyPairHex rsaGenerateHexKeyPair(unsigned int aKeySize)
 {
     KeyPairHex keyPair;
     CryptoPP::AutoSeededRandomPool rng;
@@ -29,7 +29,7 @@ KeyPairHex RsaGenerateHexKeyPair(unsigned int aKeySize)
     return keyPair;
 }
 
-std::string RsaSignString(const std::string &aPrivateKeyStrHex,
+std::string rsaSignString(const std::string &aPrivateKeyStrHex,
         const std::string &aMessage)
 {
     CryptoPP::RSA::PrivateKey privateKey;
@@ -48,7 +48,7 @@ std::string RsaSignString(const std::string &aPrivateKeyStrHex,
     return signature;
 }
 
-bool RsaVerifyString(const std::string &aPublicKeyStrHex,
+bool rsaVerifyString(const std::string &aPublicKeyStrHex,
         const std::string &aMessage,
         const std::string &aSignatureStrHex)
 {
@@ -71,7 +71,7 @@ bool RsaVerifyString(const std::string &aPublicKeyStrHex,
     return result;
 }
 
-std::string Sha256(const std::string &input)
+std::string sha256(const std::string &input)
 {
     CryptoPP::SHA256 hash;
     byte digest[CryptoPP::SHA256::DIGESTSIZE ];

@@ -6,69 +6,193 @@
 #include <cstring>
 #include <iostream>
 
-namespace
+#include <tools.h>
+#include <lora.h>
+
+namespace node
 {
+
+static const std::size_t loraBufSize = 255;
+static const std::size_t rsaBits = 1040;
+static const std::size_t dhBits = 16;
+
+enum Command
+{
+    Sign,
+    CheckStart,
+    Check,
+    CheckEnd,
+};
+
+struct SessionContext
+{
+    SessionContext()
+        : keys(tools::rsaGenerateHexKeyPair(rsaBits))
+    {
+        std::memset(message, '\0', 4096);
+    }
+
+    tools::KeyPairHex keys;
+
+    unsigned long long dhG;
+    unsigned long long dhP;
+    unsigned long long dhPrivateKey;
+    unsigned long long dhPublicKey;
+    unsigned long long dhKey;
+
+    char message[4096];
+};
+
+SessionContext session;
+
+void sendCheckResponse(LoRa_ctl *modem, const std::string &hash)
+{
+    session.dhPrivateKey = tools::generatePrimeNumber<dhBits>();
+    session.dhKey = tools::modpow(session.dhPublicKey, session.dhPrivateKey, session.dhP);
+    unsigned long long dhB = tools::modpow(session.dhG, session.dhPrivateKey, session.dhP);
+
+    std::cout << "KEY: " << std::endl;
+    std::cout << "B: " << std::endl;
+
+    std::size_t offset = 0;
+    std::string signedHash = tools::rsaSignString(session.keys.privateKey, hash);
+
+    std::memcpy(session.message, signedHash.c_str(), signedHash.length());
+    offset += signedHash.length();
+
+    std::memcpy(&session.message[offset], &dhB, sizeof(dhB));
+    offset += sizeof(dhB);
+
+    Command cmd;
+    std::string pubKey = session.keys.publicKey;
+    std::memcpy(&session.message[offset], pubKey.c_str(), pubKey.length());
+    offset += pubKey.length();
+
+    for (std::size_t i = 0; i < offset; ++i)
+    {
+        std::size_t bufSize = loraBufSize - sizeof(cmd);
+
+        if (i == 0)
+        {
+            cmd = CheckStart;
+        }
+        else if (offset - i + 1 < loraBufSize)
+        {
+            cmd = CheckEnd;
+            bufSize = offset - i + 1;
+        }
+        else
+        {
+            cmd = Check;
+        }
+
+        std::memset(modem->tx.data.buf, '\0', loraBufSize);
+        std::memcpy(modem->tx.data.buf, &cmd, sizeof(cmd));
+        std::memcpy(&modem->tx.data.buf[sizeof(cmd)], &session.message[i], bufSize);
+
+        modem->tx.data.size = bufSize + sizeof(cmd);
+        LoRa_send(modem);
+
+        if (cmd == CheckEnd) break;
+    }
+}
+
+void parseSignCommandAndSendResponse(rxData *rx)
+{
+    LoRa_ctl *modem = (LoRa_ctl *)(rx->userPtr);
+    std::size_t offset = sizeof(Command);
+    char sha256[65];
+
+    std::memcpy(sha256, &rx->buf[offset], 64);
+    offset += 64;
+    sha256[64] = '\0';
+
+    std::memcpy(&session.dhG, &rx->buf[offset], sizeof(session.dhG));
+    offset += sizeof(session.dhG);
+
+    std::memcpy(&session.dhP, &rx->buf[offset], sizeof(session.dhP));
+    offset += sizeof(session.dhP);
+
+    std::memcpy(&session.dhPublicKey, &rx->buf[offset], sizeof(session.dhPublicKey));
+    offset += sizeof(session.dhPublicKey);
+
+    sendCheckResponse(modem, sha256);
+}
+
 void txCallback(txData *tx)
 {
-    std::cout << "tx done;\tsent string: " << tx->buf << std::endl;
+    std::cout << "TX done;" << std::endl;
 
     LoRa_ctl *modem = (LoRa_ctl *)(tx->userPtr);
-    std::memset(modem->rx.data.buf, '\0', Node::loraBufSize);
+    std::memset(modem->rx.data.buf, '\0', loraBufSize);
     LoRa_receive(modem);
 }
 
 void rxCallback(rxData *rx)
 {
     LoRa_ctl *modem = (LoRa_ctl *)(rx->userPtr);
-    LoRa_stop_receive(modem);
 
-    std::cout << "rx done;\tCRC error: " << rx->CRC
+    std::cout << "RX done;\tCRC error: " << rx->CRC
               << "\tData size: " << rx->size
-              << "\tReceived string: \"" << rx->buf
-              << "\";\tRSSI: " << rx->RSSI
-              << ";\tSNR: " << rx->SNR << std::endl;
+              << "\tRSSI: " << rx->RSSI
+              << "\tSNR: " << rx->SNR << std::endl;
 
-    Node::Command cmd;
+    Command cmd;
+    std::memcpy(&cmd, rx->buf, sizeof(cmd));
+
+    switch (cmd)
+    {
+    case Sign:
+        LoRa_stop_receive(modem);
+        parseSignCommandAndSendResponse(rx);
+        break;
+    case CheckStart:
+        std::memcpy(session.message, rx->buf, rx->size - sizeof(cmd));
+        break;
+    case Check:
+        std::memcpy(session.message, rx->buf, rx->size - sizeof(cmd));
+        break;
+    case CheckEnd:
+        LoRa_stop_receive(modem);
+        std::memcpy(session.message, rx->buf, rx->size - sizeof(cmd));
+        //parseCheckCommandAndSleep(mesage);
+        break;
+    }
+}
+
+void sendSignRequest(LoRa_ctl *modem)
+{
+    std::memset(modem->tx.data.buf, '\0', loraBufSize);
+
+    session.dhG = tools::generatePrimeNumber<dhBits>();
+    session.dhP = tools::generatePrimeNumber<dhBits>();
+    session.dhPrivateKey = tools::generatePrimeNumber<dhBits>();
+
+    std::string data = "some random data to be signed";
+    std::string hash = tools::sha256(data);
+    Command cmd = Sign;
     std::size_t offset = 0;
 
-    std::memcpy(&cmd, rx->buf, sizeof(cmd));
+    std::memcpy(modem->tx.data.buf, &cmd, sizeof(cmd));
     offset += sizeof(cmd);
 
-    char sha256[65];
-    std::memcpy(sha256, &rx->buf[offset], 64);
-    offset += 64;
-    sha256[64] = '\0';
+    std::memcpy(&modem->tx.data.buf[offset], hash.c_str(), hash.length());
+    offset += hash.length();
 
-    unsigned long long dhG;
-    std::memcpy(&dhG, &rx->buf[offset], sizeof(unsigned long long));
-    offset += sizeof(unsigned long long);
+    std::memcpy(&modem->tx.data.buf[offset], &session.dhG, sizeof(session.dhG));
+    offset += sizeof(session.dhG);
 
-    unsigned long long dhP;
-    std::memcpy(&dhP, &rx->buf[offset], sizeof(unsigned long long));
-    offset += sizeof(unsigned long long);
+    std::memcpy(&modem->tx.data.buf[offset], &session.dhP, sizeof(session.dhP));
+    offset += sizeof(session.dhP);
 
-    unsigned long long dhPublicKey;
-    std::memcpy(&dhPublicKey, &rx->buf[offset], sizeof(unsigned long long));
-    offset += sizeof(unsigned long long);
+    unsigned long long dhA = tools::modpow(session.dhG, session.dhPrivateKey, session.dhP);
+    std::memcpy(&modem->tx.data.buf[offset], &dhA, sizeof(dhA));
+    modem->tx.data.size = offset + sizeof(dhA);
 
-    std::cout << "CMD: " << cmd << std::endl;
-    std::cout << "sha256: " << sha256 << std::endl;
-    std::cout << "dhG: " << dhG << std::endl;
-    std::cout << "dhP: " << dhP << std::endl;
-    std::cout << "dhPublicKey: " << dhPublicKey << std::endl;
-
-    LoRa_sleep(modem);
+    LoRa_send(modem);
 }
 
-}
-
-Node::Node(std::size_t _timeout)
-    : keys(tools::RsaGenerateHexKeyPair(rsaBits)),
-    timeout(_timeout)
-{
-}
-
-void Node::init(LoRa_ctl *modem, char *txbuf, char *rxbuf)
+void init(LoRa_ctl *modem, char *txbuf, char *rxbuf)
 {
     modem->spiCS = 0; //Raspberry SPI CE pin number
     modem->tx.callback = txCallback;
@@ -93,14 +217,11 @@ void Node::init(LoRa_ctl *modem, char *txbuf, char *rxbuf)
     modem->eth.syncWord = 0x12;
 }
 
-void Node::start(const std::string &mode)
+void start(const std::string &mode)
 {
     LoRa_ctl modem;
     char txbuf[loraBufSize];
     char rxbuf[loraBufSize];
-
-    std::memset(txbuf, '\0', loraBufSize);
-    std::memset(rxbuf, '\0', loraBufSize);
 
     init(&modem, txbuf, rxbuf);
 
@@ -130,44 +251,5 @@ void Node::start(const std::string &mode)
     LoRa_end(&modem);
 }
 
-void Node::sendSignRequest(LoRa_ctl *modem)
-{
-    dhG = tools::generatePrimeNumber<dhBits>();
-    dhP = tools::generatePrimeNumber<dhBits>();
-    dhPrivateKey = tools::generatePrimeNumber<dhBits>();
-
-    std::string data = "some random data to be signed";
-    std::string hash = tools::Sha256(data);
-    Command cmd = Command::Sign;
-    std::size_t offset = 0;
-
-    std::memset(modem->tx.data.buf, '\0', loraBufSize);
-    std::memcpy(modem->tx.data.buf, &cmd, sizeof(cmd));
-    offset += sizeof(cmd);
-
-    std::memcpy(&modem->tx.data.buf[offset], hash.c_str(), hash.length());
-    offset += hash.length();
-
-    std::memcpy(&modem->tx.data.buf[offset], &dhG, sizeof(dhG));
-    offset += sizeof(dhG);
-
-    std::memcpy(&modem->tx.data.buf[offset], &dhP, sizeof(dhP));
-    offset += sizeof(dhP);
-
-    unsigned long long dhPublicKey = tools::modpow(dhG, dhPrivateKey, dhP);
-    std::memcpy(&modem->tx.data.buf[offset], &dhPublicKey, sizeof(dhPublicKey));
-    modem->tx.data.size = offset + sizeof(dhPublicKey);
-
-    std::cout << "CMD: " << cmd << std::endl;
-    std::cout << "sha256: " << hash << std::endl;
-    std::cout << "dhG: " << dhG << std::endl;
-    std::cout << "dhP: " << dhP << std::endl;
-    std::cout << "dhPublicKey: " << dhPublicKey << std::endl;
-
-    LoRa_send(modem);
-}
-
-void Node::sendCheckRequest(LoRa_ctl *modem)
-{
-}
+} //node
 

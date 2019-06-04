@@ -7,6 +7,6 @@ int main(int argc, const char *argv[])
         return 1;
     }
 
-    Node(5000).start(argv[1]);
+    node::start(argv[1]);
     return 0;
 }
