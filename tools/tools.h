@@ -25,6 +25,8 @@ bool RsaVerifyString(const std::string &aPublicKeyStrHex,
         const std::string &aMessage,
         const std::string &aSignatureStrHex);
 
+std::string Sha256(const std::string &input);
+
 template <typename T>
 T modpow(T base, T exp, T modulus)
 {

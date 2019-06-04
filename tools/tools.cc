@@ -71,5 +71,21 @@ bool RsaVerifyString(const std::string &aPublicKeyStrHex,
     return result;
 }
 
+std::string Sha256(const std::string &input)
+{
+    CryptoPP::SHA256 hash;
+    byte digest[CryptoPP::SHA256::DIGESTSIZE ];
+    hash.CalculateDigest(digest, (byte *)input.c_str(), input.length());
+
+    CryptoPP::HexEncoder encoder;
+    std::string output;
+
+    encoder.Attach(new CryptoPP::StringSink(output));
+    encoder.Put(digest, sizeof(digest));
+    encoder.MessageEnd();
+
+    return output;
+}
+
 } //tools
 
