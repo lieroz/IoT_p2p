@@ -52,9 +52,6 @@ void sendCheckResponse(LoRa_ctl *modem, const std::string &hash)
     session.dhKey = tools::modpow(session.dhPublicKey, session.dhPrivateKey, session.dhP);
     unsigned long long dhB = tools::modpow(session.dhG, session.dhPrivateKey, session.dhP);
 
-    std::cout << "KEY: " << std::endl;
-    std::cout << "B: " << std::endl;
-
     std::size_t offset = 0;
     std::string signedHash = tools::rsaSignString(session.keys.privateKey, hash);
 
@@ -77,15 +74,17 @@ void sendCheckResponse(LoRa_ctl *modem, const std::string &hash)
         {
             cmd = CheckStart;
         }
-        else if (offset - i + 1 < loraBufSize)
+        else if (offset - i < loraBufSize)
         {
             cmd = CheckEnd;
-            bufSize = offset - i + 1;
+            bufSize = offset - i;
         }
         else
         {
             cmd = Check;
         }
+
+        std::cout << "i: " << i << ", bufSize: " << bufSize << std::endl;
 
         std::this_thread::sleep_for(std::chrono::milliseconds(5000));
 
@@ -95,7 +94,7 @@ void sendCheckResponse(LoRa_ctl *modem, const std::string &hash)
 
         modem->tx.data.size = bufSize + sizeof(cmd);
         LoRa_send(modem);
-        i += bufSize;
+        i += bufSize - 1;
 
         if (cmd == CheckEnd) break;
     }
@@ -137,7 +136,7 @@ void rxCallback(rxData *rx)
     LoRa_ctl *modem = (LoRa_ctl *)(rx->userPtr);
 
     std::cout << "RX done;\tCRC error: " << rx->CRC
-              << "\tData size: " << rx->size
+              << "\tData size: " << (int)rx->size
               << "\tRSSI: " << rx->RSSI
               << "\tSNR: " << rx->SNR << std::endl;
 
