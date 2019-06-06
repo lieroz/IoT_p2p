@@ -17,7 +17,7 @@ int LoRa_begin(LoRa_ctl *modem){
 
     lora_reset(modem->eth.resetGpioN);
 
-    if ((modem->spid = spiOpen(modem->spiCS, 32000, 0)) < 0)
+    if ((modem->spid = spiOpen(modem->spiCS, 115200, 0)) < 0)
     {
         return modem->spid;
     }
