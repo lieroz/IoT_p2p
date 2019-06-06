@@ -3,6 +3,7 @@
 #include <stdexcept>
 #include <functional>
 #include <thread>
+#include <chrono>
 #include <cstring>
 #include <iostream>
 
@@ -86,12 +87,15 @@ void sendCheckResponse(LoRa_ctl *modem, const std::string &hash)
             cmd = Check;
         }
 
+        std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+
         std::memset(modem->tx.data.buf, '\0', loraBufSize);
         std::memcpy(modem->tx.data.buf, &cmd, sizeof(cmd));
         std::memcpy(&modem->tx.data.buf[sizeof(cmd)], &session.message[i], bufSize);
 
         modem->tx.data.size = bufSize + sizeof(cmd);
         LoRa_send(modem);
+        i += bufSize;
 
         if (cmd == CheckEnd) break;
     }
