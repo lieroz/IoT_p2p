@@ -42,6 +42,7 @@ struct SessionContext
     unsigned long long dhKey;
 
     char message[4096];
+    int messageLength = 0;
 };
 
 SessionContext session;
@@ -84,8 +85,6 @@ void sendCheckResponse(LoRa_ctl *modem, const std::string &hash)
             cmd = Check;
         }
 
-        std::cout << "i: " << i << ", bufSize: " << bufSize << std::endl;
-
         std::this_thread::sleep_for(std::chrono::milliseconds(5000));
 
         std::memset(modem->tx.data.buf, '\0', loraBufSize);
@@ -98,6 +97,8 @@ void sendCheckResponse(LoRa_ctl *modem, const std::string &hash)
 
         if (cmd == CheckEnd) break;
     }
+
+    LoRa_sleep(modem);
 }
 
 void parseSignCommandAndSendResponse(rxData *rx)
@@ -131,6 +132,33 @@ void txCallback(txData *tx)
     LoRa_receive(modem);
 }
 
+void parseCheckCommandAndSleep()
+{
+    char signature[261];
+    std::memcpy(signature, session.message, 260);
+    signature[261] = '\0';
+
+    unsigned long long dhB;
+    std::memcpy(&dhB, &session.message[260], sizeof(unsigned long long));
+
+    char pubKey[325];
+    std::memcpy(pubKey, &session.message[260 + sizeof(unsigned long long)], 324);
+    pubKey[325] = '\0';
+
+    std::string data = "some random data to be signed";
+    std::string hash = tools::sha256(data);
+    bool valid = tools::rsaVerifyString(pubKey, hash, signature);
+
+    if (valid)
+    {
+        std::cout << "signature valid" << std::endl;
+    }
+    else
+    {
+        std::cout << "signature is invalid" << std::endl;
+    }
+}
+
 void rxCallback(rxData *rx)
 {
     LoRa_ctl *modem = (LoRa_ctl *)(rx->userPtr);
@@ -150,16 +178,26 @@ void rxCallback(rxData *rx)
         parseSignCommandAndSendResponse(rx);
         break;
     case CheckStart:
-        std::memcpy(session.message, rx->buf, rx->size - sizeof(cmd));
+        std::memcpy(session.message, &rx->buf[sizeof(cmd)], rx->size - sizeof(cmd));
         break;
     case Check:
-        std::memcpy(session.message, rx->buf, rx->size - sizeof(cmd));
+        std::memcpy(&session.message[session.messageLength], &rx->buf[sizeof(cmd)], rx->size - sizeof(cmd));
         break;
     case CheckEnd:
         LoRa_stop_receive(modem);
-        std::memcpy(session.message, rx->buf, rx->size - sizeof(cmd));
-        //parseCheckCommandAndSleep(mesage);
+        std::memcpy(&session.message[session.messageLength], &rx->buf[sizeof(cmd)], rx->size - sizeof(cmd));
         break;
+    }
+
+    session.messageLength += rx->size - sizeof(cmd);
+    std::cout << "messageLen: " << session.messageLength << std::endl;
+
+    if (cmd == CheckEnd)
+    {
+        parseCheckCommandAndSleep();
+        std::memset(session.message, '\0', session.messageLength);
+        session.messageLength = 0;
+        LoRa_sleep(modem);
     }
 }
 
