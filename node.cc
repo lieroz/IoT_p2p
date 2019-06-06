@@ -85,7 +85,7 @@ void sendCheckResponse(LoRa_ctl *modem, const std::string &hash)
             cmd = Check;
         }
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+        std::this_thread::sleep_for(std::chrono::milliseconds(6000));
 
         std::memset(modem->tx.data.buf, '\0', loraBufSize);
         std::memcpy(modem->tx.data.buf, &cmd, sizeof(cmd));
@@ -190,7 +190,6 @@ void rxCallback(rxData *rx)
     }
 
     session.messageLength += rx->size - sizeof(cmd);
-    std::cout << "messageLen: " << session.messageLength << std::endl;
 
     if (cmd == CheckEnd)
     {
