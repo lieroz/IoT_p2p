@@ -242,9 +242,9 @@ void init(LoRa_ctl *modem, char *txbuf, char *rxbuf)
     modem->rx.data.userPtr = static_cast<void *>(modem);
     modem->tx.data.userPtr = static_cast<void *>(modem);
     modem->eth.preambleLen = 6;
-    modem->eth.bw = BW62_5; //Bandwidth 62.5KHz
-    modem->eth.sf = SF7; //Spreading Factor 12
-    modem->eth.ecr = CR8; //Error coding rate CR4/8
+    modem->eth.bw = BW500; //Bandwidth 500KHz
+    modem->eth.sf = SF7; //Spreading Factor 7
+    modem->eth.ecr = CR5; //Error coding rate CR4/5
     modem->eth.CRC = 1; //Turn on CRC checking
     modem->eth.freq = 868100000; // 868.1MHz
     modem->eth.resetGpioN = 4; //GPIO4 on lora RESET pin
