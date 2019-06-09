@@ -67,14 +67,6 @@ void sendCheckResponse(LoRa_ctl *modem, const std::string &hash)
     std::memcpy(&session.message[offset], pubKey.c_str(), pubKey.length());
     offset += pubKey.length();
 
-    std::cout << "КОМАНДА: Check" << std::endl;
-    std::cout << "Подписанный хещ: " << signedHash << std::endl;
-    std::cout << "Генератор: " << session.dhG << std::endl;
-    std::cout << "Простой модуль: " << session.dhP << std::endl;
-    std::cout << "Публичное число А: " << session.dhPublicKey << std::endl;
-    std::cout << "Публичное число B: " << dhB << std::endl;
-    std::cout << "Ключ сессии: " << session.dhKey << std::endl;
-
     for (std::size_t i = 0; i < offset; ++i)
     {
         std::size_t bufSize = loraBufSize - sizeof(cmd);
@@ -158,19 +150,13 @@ void parseCheckCommandAndSleep()
     std::string hash = tools::sha256(data);
     bool valid = tools::rsaVerifyString(pubKey, hash, signature);
 
-    std::cout << "Команда: Check" << std::endl;
-    std::cout << "Подписанный хеш: " << signature << std::endl;
-    std::cout << "Публичный ключ: " << pubKey << std::endl;
-    std::cout << "Публичное число B: " << dhB << std::endl;
-    std::cout << "Ключ сессии: " << session.dhKey << std::endl;
-
     if (valid)
     {
-        std::cout << "Подпись верна" << std::endl;
+        std::cout << "Signature valid" << std::endl;
     }
     else
     {
-        std::cout << "Подпись не прошла проверку" << std::endl;
+        std::cout << "Signature is invalid" << std::endl;
     }
 }
 
@@ -243,12 +229,6 @@ void sendSignRequest(LoRa_ctl *modem)
     unsigned long long dhA = tools::modpow(session.dhG, session.dhPrivateKey, session.dhP);
     std::memcpy(&modem->tx.data.buf[offset], &dhA, sizeof(dhA));
     modem->tx.data.size = offset + sizeof(dhA);
-
-    std::cout << "Команда: Sign" << std::endl;
-    std::cout << "Хеш: " << hash << std::endl;
-    std::cout << "Генератор: " << session.dhG << std::endl;
-    std::cout << "Простой модуль: " << session.dhP << std::endl;
-    std::cout << "Публичный номер: " << dhA << std::endl;
 
     LoRa_send(modem);
 }
