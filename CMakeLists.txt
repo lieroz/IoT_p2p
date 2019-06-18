@@ -4,5 +4,11 @@ project(IoT_p2p)
 include_directories(lora)
 add_subdirectory(lora)
 
-add_executable(${PROJECT_NAME} node.cc)
-target_link_libraries(${PROJECT_NAME} lora_lib)
+include_directories(tools)
+add_subdirectory(tools)
+
+set(SOURCES
+    node.cc)
+
+add_executable(${PROJECT_NAME} main.cc ${SOURCES})
+target_link_libraries(${PROJECT_NAME} lora_lib tools_lib)
